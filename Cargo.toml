@@ -1,0 +1,11 @@
+[package]
+name = "html2md"
+version = "0.1.0"
+authors = ["Kanedias <kanedias@xaker.ru>"]
+
+[lib]
+name = "html2md"
+crate-type = ["dylib"]
+
+[dependencies]
+html5ever = "0.22"
