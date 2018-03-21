@@ -9,3 +9,4 @@ crate-type = ["dylib"]
 
 [dependencies]
 html5ever = "0.22"
+lazy_static = "1.0"

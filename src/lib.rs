@@ -1,6 +1,8 @@
 //#![feature(alloc_system)]
 
 extern crate html5ever;
+#[macro_use]
+extern crate lazy_static;
 
 use html5ever::parse_document;
 use html5ever::rcdom::{RcDom, Handle, NodeData};
@@ -9,6 +11,17 @@ use html5ever::tendril::TendrilSink;
 use html5ever::tree_builder::TreeBuilderOpts;
 use html5ever::tree_builder::QuirksMode;
 use html5ever::tokenizer::TokenizerOpts;
+use html5ever::{QualName, Attribute};
+
+struct State {
+
+}
+
+lazy_static! {
+    static ref STATE: State = State {
+        
+    };
+}
 
 pub fn parse(html: &str) -> String {
     let opts = ParseOpts {
@@ -49,6 +62,7 @@ fn walk(input: Handle, result: &mut String) {
             match name.local.to_string().as_ref() {
                 "html" | "head" | "body" => println!("skipping starting tags..."),
                 "p" => result.push_str("\n\n"),
+                "a" => handle_anchor(result, name, &attrs.borrow()), // should mark that we're inside the anchor
                 _ => {}
             }
             print!("element {}", name.local);
@@ -64,6 +78,15 @@ fn walk(input: Handle, result: &mut String) {
     for child in input.children.borrow().iter() {
         walk(child.clone(), result);
     }
+}
+
+fn handle_anchor(result: &mut String, name: &QualName, attrs: &Vec<Attribute>) {
+    let url = attrs.into_iter().find(|attr| attr.name.local.to_string() == "href");
+    if let Some(link) = url {
+        result.push_str("[")
+        STATE.
+    }
+    
 }
 
 #[cfg(test)]
