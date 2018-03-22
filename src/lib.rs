@@ -90,9 +90,33 @@ fn handle_anchor(result: &mut String, name: &QualName, attrs: &Vec<Attribute>) {
     
 }
 
+struct StructuredPrinter {
+    data: String,
+    position: u32
+}
+
 trait TagHandler: Sync {
-    fn handle_tag(&mut self, tag: &NodeData);
-    fn is_applicable(&self, name: String);
+    fn before_handle(&mut self, printer: &mut StructuredPrinter);
+    fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter);
+    fn after_handle(&mut self, printer: &mut StructuredPrinter);
+    fn is_applicable(&self, tag_name: String);
+}
+
+struct AnchorHandler {
+
+}
+
+impl TagHandler for AnchorHandler {
+
+    fn before_handle(&mut self, printer: &mut StructuredPrinter) {
+        printer.data.push_str("[]");
+    }
+    fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter) {
+    }
+    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+    }
+    fn is_applicable(&self, tag_name: String) {
+    }
 }
 
 
