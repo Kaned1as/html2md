@@ -1,0 +1,18 @@
+{
+    // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+    // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+    // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "./target/debug/unit-fa9af9fbf9186678",
+            "target": "./target/debug/unit-4ed1a7d70291f1ad",
+            "cwd": "${workspaceRoot}",
+            "sourceLanguages": ["rust"]
+        }
+    ]
+}
