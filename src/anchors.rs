@@ -3,13 +3,12 @@ use super::StructuredPrinter;
 
 use html5ever::rcdom::NodeData;
 
-pub struct AnchorHandler {
-
-}
+#[derive(Default)]
+pub struct AnchorHandler;
 
 impl TagHandler for AnchorHandler {
 
-    fn before_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, parent_handler: &TagHandler) {
         
     }
     

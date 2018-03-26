@@ -3,13 +3,12 @@ use super::StructuredPrinter;
 
 use html5ever::rcdom::NodeData;
 
-pub struct DummyHandler {
-
-}
+#[derive(Default)]
+pub struct DummyHandler;
 
 impl TagHandler for DummyHandler {
 
-    fn before_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, parent_handler: &TagHandler) {
         
     }
 

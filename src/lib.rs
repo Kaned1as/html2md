@@ -3,6 +3,7 @@
 extern crate html5ever;
 
 use std::boxed::Box;
+use std::borrow::Borrow;
 
 use html5ever::parse_document;
 use html5ever::rcdom::{RcDom, Handle, NodeData};
@@ -14,13 +15,17 @@ use html5ever::tokenizer::TokenizerOpts;
 
 mod dummy;
 mod anchors;
-mod paragraph;
+mod paragraphs;
 mod images;
+mod headers;
+mod lists;
 
 use dummy::DummyHandler;
-use paragraph::ParagraphHandler;
+use paragraphs::ParagraphHandler;
 use anchors::AnchorHandler;
 use images::ImgHandler;
+use headers::HeaderHandler;
+use lists::ListHandler;
 
 pub fn parse(html: &str) -> StructuredPrinter {
     let opts = ParseOpts {
@@ -42,33 +47,40 @@ pub fn parse(html: &str) -> StructuredPrinter {
     };
     let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter{ data: String::new(), position: 0 };
-    walk(dom.document, &mut result);
+    let dummy = DummyHandler::default();
+    walk(dom.document, &dummy, &mut result);
     println!("{:?}", result);
     return result;
 }
 
-fn walk(input: Handle, result: &mut StructuredPrinter) {
-     let mut handler : Box<TagHandler> = Box::new(DummyHandler {});
+fn walk(input: Handle, parent_handler: &TagHandler, result: &mut StructuredPrinter) {
+     let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
-        NodeData::Text { ref contents }  => result.data.insert_str(result.position, &contents.borrow()),
+        NodeData::Text { ref contents }  => {
+            let text = &contents.borrow();
+            result.data.insert_str(result.position, text);
+            result.position += text.len();
+        }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
             handler = match name.local.to_string().as_ref() {
-                "html" | "head" | "body" => Box::new(DummyHandler {}),
-                "p" => Box::new(ParagraphHandler {}),
-                "a" => Box::new(AnchorHandler {}),
-                "img" => Box::new(ImgHandler {}),
-                _ => Box::new(DummyHandler {})
+                "html" | "head" | "body" => Box::new(DummyHandler::default()),
+                "p" | "br" => Box::new(ParagraphHandler::default()),
+                "a" => Box::new(AnchorHandler::default()),
+                "img" => Box::new(ImgHandler::default()),
+                "h1" | "h2" | "h3" => Box::new(HeaderHandler::default()),
+                "ul" | "ol" => Box::new(ListHandler::default()),
+                _ => Box::new(DummyHandler::default())
             };
             println!("element {}", name.local);
-            handler.before_handle(result);
+            handler.before_handle(&parent_handler);
             handler.handle(&input.data, result);
         }
     }
 
     for child in input.children.borrow().iter() {
-        walk(child.clone(), result);
+        walk(child.clone(), &handler.borrow(), result);
     }
 
     handler.after_handle(result);
@@ -80,8 +92,8 @@ pub struct StructuredPrinter {
     position: usize
 }
 
-trait TagHandler: Sync {
-    fn before_handle(&mut self, printer: &mut StructuredPrinter);
+trait TagHandler {
+    fn before_handle(&mut self, parent_handler: &TagHandler);
     fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter);
     fn after_handle(&mut self, printer: &mut StructuredPrinter);
 
