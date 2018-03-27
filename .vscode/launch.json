@@ -6,7 +6,16 @@
     "configurations": [
         
         {
-            "name": "Debug tests",
+            "name": "Debug unit-tests",
+            "type": "lldb",
+            "request": "launch",
+            "program": "./target/debug/unit-fa9af9fbf9186678",
+            "args": [ "test_list", "--nocapture" ],
+            "cwd": "${workspaceRoot}",
+            "sourceLanguages": ["rust"]
+        },
+        {
+            "name": "Debug integration-tests",
             "type": "lldb",
             "request": "launch",
             "program": "./target/debug/integration-1f51dbcaa4a7421b",

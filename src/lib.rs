@@ -76,7 +76,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 "a" => Box::new(AnchorHandler::default()),
                 "img" => Box::new(ImgHandler::default()),
                 "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
-                "ul" | "ol" | "li" => Box::new(ListHandler::default()),
+                "li" => Box::new(ListHandler::default()), // "ul" | "ol" are retrieved through parent_chain
                 "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 "pre" | "code" => Box::new(CodeHandler::default()),
                 _ => Box::new(DummyHandler::default())
