@@ -8,10 +8,6 @@ pub struct DummyHandler;
 
 impl TagHandler for DummyHandler {
 
-    fn before_handle(&mut self, parent_handler: &TagHandler) {
-        
-    }
-
     fn handle(&mut self, _tag: &NodeData, _printer: &mut StructuredPrinter) {
        
     }

@@ -4,6 +4,7 @@ extern crate html5ever;
 
 use std::boxed::Box;
 use std::borrow::Borrow;
+use std::collections::HashMap;
 
 use html5ever::parse_document;
 use html5ever::rcdom::{RcDom, Handle, NodeData};
@@ -19,6 +20,7 @@ mod paragraphs;
 mod images;
 mod headers;
 mod lists;
+mod styles;
 
 use dummy::DummyHandler;
 use paragraphs::ParagraphHandler;
@@ -26,6 +28,7 @@ use anchors::AnchorHandler;
 use images::ImgHandler;
 use headers::HeaderHandler;
 use lists::ListHandler;
+use styles::StyleHandler;
 
 pub fn parse(html: &str) -> StructuredPrinter {
     let opts = ParseOpts {
@@ -46,15 +49,15 @@ pub fn parse(html: &str) -> StructuredPrinter {
         }
     };
     let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
-    let mut result = StructuredPrinter{ data: String::new(), position: 0 };
-    let dummy = DummyHandler::default();
-    walk(dom.document, &dummy, &mut result);
+    let mut result = StructuredPrinter::default();
+    walk(&dom.document, &mut result);
     println!("{:?}", result);
     return result;
 }
 
-fn walk(input: Handle, parent_handler: &TagHandler, result: &mut StructuredPrinter) {
-     let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
+fn walk(input: &Handle, result: &mut StructuredPrinter) {
+    let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
+    let mut tag_name = String::default();
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
@@ -64,37 +67,68 @@ fn walk(input: Handle, parent_handler: &TagHandler, result: &mut StructuredPrint
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
-            handler = match name.local.to_string().as_ref() {
+            tag_name = name.local.to_string();
+            handler = match tag_name.as_ref() {
                 "html" | "head" | "body" => Box::new(DummyHandler::default()),
                 "p" | "br" => Box::new(ParagraphHandler::default()),
                 "a" => Box::new(AnchorHandler::default()),
                 "img" => Box::new(ImgHandler::default()),
                 "h1" | "h2" | "h3" => Box::new(HeaderHandler::default()),
                 "ul" | "ol" => Box::new(ListHandler::default()),
+                "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 _ => Box::new(DummyHandler::default())
             };
+
             println!("element {}", name.local);
-            handler.before_handle(&parent_handler);
-            handler.handle(&input.data, result);
         }
     }
 
+    //result.siblings.get_mut(k)
+
+    // handle this tag
+    handler.handle(&input.data, result);
+
+    // save this tag name as parent for child nodes
+    result.parent_chain.push(tag_name.to_string());     // e.g. it was ["body"] and now it's ["body", "p"]
+    let current_depth = result.parent_chain.len();      // e.g. it was 1 and now it's 2
+
+    // create space for siblings of next level
+    result.siblings.insert(current_depth, vec![]);
+
     for child in input.children.borrow().iter() {
-        walk(child.clone(), &handler.borrow(), result);
+        walk(child.borrow(), result);
+        //result.siblings.get_mut(&current_depth).push();
     }
 
     handler.after_handle(result);
+
+    // clear siblings of next level
+    result.siblings.remove(&current_depth);
+
+    // release parent tag
+    result.parent_chain.pop();
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct StructuredPrinter {
+    /// Chain of parents leading to upmost <html> tag
+    parent_chain: Vec<String>,
+
+    /// Siblings of currently processed tag in order where they're appearing in html
+    siblings: HashMap<usize, Vec<String>>,
+
+    /// resulting markdown document
     data: String,
+
+    /// Position in [data] for tracking non-appending cases
     position: usize
 }
 
 trait TagHandler {
-    fn before_handle(&mut self, parent_handler: &TagHandler);
+    /// Handle tag encountered when walking HTML tree
     fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter);
+
+    /// Executed after all children of this tag have been processed
     fn after_handle(&mut self, printer: &mut StructuredPrinter);
 
     /// is this tag handler applicable for specified tag

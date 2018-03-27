@@ -7,10 +7,6 @@ use html5ever::rcdom::NodeData;
 pub struct AnchorHandler;
 
 impl TagHandler for AnchorHandler {
-
-    fn before_handle(&mut self, parent_handler: &TagHandler) {
-        
-    }
     
     fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter) {
         // try to extract a hyperlink

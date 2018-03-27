@@ -10,10 +10,6 @@ pub struct ListHandler {
 
 impl TagHandler for ListHandler {
 
-    fn before_handle(&mut self, parent_handler: &TagHandler) {
-        
-    }
-
     fn handle(&mut self, tag: &NodeData, _printer: &mut StructuredPrinter) {
         self.list_type = match tag {
             &NodeData::Element { ref name, .. } => name.local.to_string(),
@@ -30,6 +26,6 @@ impl TagHandler for ListHandler {
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "p" || tag_name == "br";
+        return tag_name == "ul" || tag_name == "ol";
     }
 }

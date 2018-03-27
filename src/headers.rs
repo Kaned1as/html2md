@@ -10,10 +10,6 @@ pub struct HeaderHandler {
 
 impl TagHandler for HeaderHandler {
 
-    fn before_handle(&mut self, parent_handler: &TagHandler) {
-        
-    }
-
     fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter) {
         self.header_type = match tag {
             &NodeData::Element { ref name, .. } => name.local.to_string(),
