@@ -20,6 +20,11 @@ impl TagHandler for HeaderHandler {
             printer.data.insert_str(printer.position, "### ");
             printer.position += 4;
         }
+
+        if self.header_type == "h4" {
+            printer.data.insert_str(printer.position, "#### ");
+            printer.position += 5;
+        }
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
@@ -27,11 +32,12 @@ impl TagHandler for HeaderHandler {
             "h1" => { printer.data.insert_str(printer.position, "\n==========\n"); printer.position += 12; }
             "h2" => { printer.data.insert_str(printer.position, "\n----------\n"); printer.position += 12; }
             "h3" => { printer.data.insert_str(printer.position, " ###\n"); printer.position += 5; }
+            "h4" => { printer.data.insert_str(printer.position, " ####\n"); printer.position += 6; }
             _ => {}
         }
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "h1" || tag_name == "h2" || tag_name == "h3";
+        return tag_name == "h1" || tag_name == "h2" || tag_name == "h3" || tag_name == "h4";
     }
 }
