@@ -79,7 +79,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 _ => Box::new(DummyHandler::default())
             };
 
-            println!("element {}", name.local);
+            //println!("element {}", name.local);
         }
     }
 
@@ -97,7 +97,13 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
 
     for child in input.children.borrow().iter() {
         walk(child.borrow(), result);
-        //result.siblings.get_mut(&current_depth).push();
+
+        match child.data {
+            NodeData::Element { ref name, .. } => result.siblings.get_mut(&current_depth).unwrap().push(name.local.to_string()),
+            _ => {}
+        };
+
+        println!("{:?}", result);
     }
 
     handler.after_handle(result);
