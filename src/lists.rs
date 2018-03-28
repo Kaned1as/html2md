@@ -28,8 +28,14 @@ impl TagHandler for ListHandler {
         let list_type = parent_lists.first();
         if list_type.is_none() {
             // no parent list
-            // should not happen - html5ever cleans html input whn parsing
+            // should not happen - html5ever cleans html input when parsing
             return;
+        }
+
+        
+        if printer.data.as_bytes().get(printer.position - 1).unwrap_or(&0) != &b'\n' {
+            printer.data.insert_str(printer.position, "\n"); 
+            printer.position += 1;
         }
 
         self.list_type = list_type.unwrap().to_string();
