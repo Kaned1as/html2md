@@ -19,8 +19,8 @@ impl TagHandler for ParagraphHandler {
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         match self.paragraph_type.as_ref() {
-            "p" => { printer.data.insert_str(printer.position, "\n\n");  printer.position += 2; }
-            "br" => { printer.data.insert_str(printer.position, "\n"); printer.position += 1; }
+            "p" => { printer.insert_newline(); printer.insert_newline(); }
+            "br" => printer.insert_newline(),
             _ => {}
         }
     }

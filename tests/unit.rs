@@ -48,6 +48,19 @@ fn test_list() {
 
 #[test]
 fn test_list2() {
-    let md = parse(r#"<p><ul><li>Seven things has lady Lackless<ul><li>Kingkiller<li></ul></li>Keeps them underneath her black dress</li><li>One a thing that's not for wearing</li></ul></p>"#);
+    let md = parse(r#"
+    <p>
+        <ul>
+            <li>Seven things has lady Lackless
+                <ul>
+                    <li>Kingkiller</li>
+                    <li>Chronicles</li>
+                    <li>Series</li>
+                </ul>
+            </li>
+            <li>Keeps them underneath her black dress</li>
+            <li>One a thing that's not for wearing</li>
+        </ul>
+    </p>"#);
     println!("{}", md);
 }

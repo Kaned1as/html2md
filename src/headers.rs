@@ -17,22 +17,20 @@ impl TagHandler for HeaderHandler {
         };
 
         if self.header_type == "h3" {
-            printer.data.insert_str(printer.position, "### ");
-            printer.position += 4;
+            printer.insert_str("### ");
         }
 
         if self.header_type == "h4" {
-            printer.data.insert_str(printer.position, "#### ");
-            printer.position += 5;
+            printer.insert_str("#### ");
         }
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         match self.header_type.as_ref() {
-            "h1" => { printer.data.insert_str(printer.position, "\n==========\n"); printer.position += 12; }
-            "h2" => { printer.data.insert_str(printer.position, "\n----------\n"); printer.position += 12; }
-            "h3" => { printer.data.insert_str(printer.position, " ###\n"); printer.position += 5; }
-            "h4" => { printer.data.insert_str(printer.position, " ####\n"); printer.position += 6; }
+            "h1" => printer.insert_str("\n==========\n"),
+            "h2" => printer.insert_str("\n----------\n"),
+            "h3" => printer.insert_str(" ###\n"),
+            "h4" => printer.insert_str(" ####\n"),
             _ => {}
         }
     }

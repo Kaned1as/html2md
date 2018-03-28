@@ -28,6 +28,7 @@ use paragraphs::ParagraphHandler;
 use anchors::AnchorHandler;
 use images::ImgHandler;
 use headers::HeaderHandler;
+use lists::ListItemHandler;
 use lists::ListHandler;
 use styles::StyleHandler;
 use codes::CodeHandler;
@@ -64,8 +65,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
             let text = &contents.borrow();
-            result.data.insert_str(result.position, text);
-            result.position += text.len();
+            result.insert_str(text);
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
@@ -76,7 +76,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 "a" => Box::new(AnchorHandler::default()),
                 "img" => Box::new(ImgHandler::default()),
                 "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
-                "li" => Box::new(ListHandler::default()), // "ul" | "ol" are retrieved through parent_chain
+                "ol" | "ul" | "menu" => Box::new(ListHandler::default()),
+                "li" => Box::new(ListItemHandler::default()),
                 "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 "pre" | "code" => Box::new(CodeHandler::default()),
                 _ => Box::new(DummyHandler::default())
@@ -130,7 +131,22 @@ pub struct StructuredPrinter {
     data: String,
 
     /// Position in [data] for tracking non-appending cases
-    position: usize
+    position: usize,
+
+    indent: usize
+}
+
+impl StructuredPrinter {
+    fn insert_newline(&mut self) {
+        self.insert_str("\n");
+        let indentation = " ".repeat(self.indent);
+        self.insert_str(&indentation);
+    }
+
+    fn insert_str(&mut self, it: &str) {
+        self.data.insert_str(self.position, it);
+        self.position += it.len();
+    }
 }
 
 trait TagHandler {

@@ -18,9 +18,9 @@ impl TagHandler for StyleHandler {
 
         // starting markup
         match self.style_type.as_ref() {
-            "b" | "strong" => { printer.data.insert_str(printer.position, "**"); printer.position += 2; }
-            "i" | "em" => { printer.data.insert_str(printer.position, "*"); printer.position += 1; }
-            "s" | "del" => { printer.data.insert_str(printer.position, "~~"); printer.position += 2; }
+            "b" | "strong" => printer.insert_str("**"),
+            "i" | "em" => printer.insert_str("*"),
+            "s" | "del" => printer.insert_str("~~"),
             _ => {}
         }
     }
@@ -28,9 +28,9 @@ impl TagHandler for StyleHandler {
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         // finishing markup
         match self.style_type.as_ref() {
-            "b" | "strong" => { printer.data.insert_str(printer.position, "**"); printer.position += 2; }
-            "i" | "em" => { printer.data.insert_str(printer.position, "*"); printer.position += 1; }
-            "s" | "del" => { printer.data.insert_str(printer.position, "~~"); printer.position += 2; }
+            "b" | "strong" => printer.insert_str("**"),
+            "i" | "em" => printer.insert_str("*"),
+            "s" | "del" => printer.insert_str("~~"),
             _ => {}
         }
     }

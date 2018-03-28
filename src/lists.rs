@@ -5,57 +5,76 @@ use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
 pub struct ListHandler {
-    depth: usize,
-    elem_type: String,
-    list_type: String
+    depth: usize
 }
 
 impl TagHandler for ListHandler {
 
-    fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter) {
-        self.elem_type = match tag {
-            &NodeData::Element { ref name, .. } => name.local.to_string(),
-            _ => String::new()
-        };
-
-        if self.elem_type != "li" {
-            return;
-        }
-
+    /// we're entering "ul" pr or "ol" tag, no "li" handing here
+    fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
         let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
-        self.depth = parent_lists.len() - 1; // don't indent simple lists
-
-        let list_type = parent_lists.first();
-        if list_type.is_none() {
-            // no parent list
-            // should not happen - html5ever cleans html input when parsing
+        self.depth = parent_lists.len();
+        if self.depth == 0 {
+            // don't indent top-level lists
             return;
         }
 
-        
-        if printer.data.as_bytes().get(printer.position - 1).unwrap_or(&0) != &b'\n' {
-            printer.data.insert_str(printer.position, "\n"); 
-            printer.position += 1;
+        // this is one of inner lists, increase indentation
+        printer.indent += 4;
+    }
+
+    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+        if self.depth == 0 {
+            // don't decrease indent on top-level lists
+            return;
         }
 
-        self.list_type = list_type.unwrap().to_string();
-        printer.data.insert_str(printer.position, &" ".repeat(self.depth * 4)); 
-        printer.position += self.depth * 4; // indent inner lists
+        // this is one of inner lists, decrease indentation
+        printer.indent -= 4;
+    }
+
+    fn is_applicable(&self, tag_name: String) -> bool {
+        return tag_name == "ul" || tag_name == "menu" || tag_name == "ol";
+    }
+}
+
+#[derive(Default)]
+pub struct ListItemHandler {
+    list_type: String
+}
+
+impl TagHandler for ListItemHandler {
+
+    fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
+        {
+            let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
+            let nearest_parent_list = parent_lists.first();
+            if nearest_parent_list.is_none() {
+                // no parent list
+                // should not happen - html5ever cleans html input when parsing
+                return;
+            }
+
+            self.list_type = nearest_parent_list.unwrap().to_string();
+        }
+
+        if printer.data.trim_matches(' ').chars().last() != Some('\n') {
+            // insert newline when declaring a list item only in case there isn't any newline at the end of text
+            printer.insert_newline(); 
+        }
 
         match self.list_type.as_ref() {
-            "ul" | "menu" => { printer.data.insert_str(printer.position, "* ");  printer.position += 2; } // unordered list: *, *, *
-            "ol" => { printer.data.insert_str(printer.position, "1. "); printer.position += 3; } // ordered list: 1, 2, 3
+            "ul" | "menu" => printer.insert_str("* "), // unordered list: *, *, *
+            "ol" => printer.insert_str("1. "), // ordered list: 1, 2, 3
             _ => {} // never happens
         }
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        if self.elem_type != "li" {
-            return;
+        if printer.data.trim_matches(' ').chars().last() != Some('\n') {
+            // insert newline after list item was finished only if internal paragraph didn't do it already
+            printer.insert_newline(); 
         }
-
-        printer.data.insert_str(printer.position, "\n");  
-        printer.position += 1;
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {

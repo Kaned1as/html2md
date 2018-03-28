@@ -10,24 +10,21 @@ pub struct CodeHandler {
 
 impl CodeHandler {
     fn do_handle(&mut self, printer: &mut StructuredPrinter) {
-        let immediate_parent = printer.parent_chain.last().unwrap();
+        let immediate_parent = printer.parent_chain.last().unwrap().to_owned();
         if self.code_type == "code" && immediate_parent == "pre" {
             // we are already in "code" mode, just add newline
-            printer.data.insert_str(printer.position, "\n");
-            printer.position += 1;
+            printer.insert_newline();
             return;
         }
 
         if self.code_type == "pre" {
             // switch to code mode
-            printer.data.insert_str(printer.position, "```");
-            printer.position += 3;
+            printer.insert_str("```");
         }
 
         if self.code_type == "code" {
             // switch to inline code mode
-            printer.data.insert_str(printer.position, "`");
-            printer.position += 1
+            printer.insert_str("`");
         }
     }
 }
