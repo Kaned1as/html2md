@@ -29,7 +29,7 @@ impl TagHandler for ListHandler {
             return;
         }
 
-        // this is one of inner lists, decrease indentation
+        // this was one of inner lists, decrease indentation
         printer.indent -= 4;
     }
 

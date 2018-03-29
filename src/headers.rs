@@ -16,6 +16,8 @@ impl TagHandler for HeaderHandler {
             _ => String::new()
         };
 
+        printer.insert_newline(); 
+
         if self.header_type == "h3" {
             printer.insert_str("### ");
         }

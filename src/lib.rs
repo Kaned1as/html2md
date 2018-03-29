@@ -65,7 +65,11 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
             let text = &contents.borrow();
-            result.insert_str(text);
+            let whitespace_between_tags = text.as_ref() == "\n";
+            let inside_pre = result.parent_chain.iter().find(|&tag| tag == "pre").is_some();
+            if !whitespace_between_tags || inside_pre {
+                result.insert_str(text);
+            }
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
