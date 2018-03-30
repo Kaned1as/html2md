@@ -25,6 +25,7 @@ mod headers;
 mod lists;
 mod styles;
 mod codes;
+mod quotes;
 
 use dummy::DummyHandler;
 use paragraphs::ParagraphHandler;
@@ -35,6 +36,7 @@ use lists::ListItemHandler;
 use lists::ListHandler;
 use styles::StyleHandler;
 use codes::CodeHandler;
+use quotes::QuoteHandler;
 
 pub fn parse(html: &str) -> String {
     let opts = ParseOpts {
@@ -66,6 +68,12 @@ pub fn parse(html: &str) -> String {
     return result.data;
 }
 
+/// Recursively walk through all DOM tree and handle all elements according to 
+/// HTML tag -> Markdown syntax mapping. Text content goes as-is.
+/// 
+/// # Arguments
+/// `input` is DOM tree or its subtree
+/// `result` is output holder with position and context tracking
 fn walk(input: &Handle, result: &mut StructuredPrinter) {
     let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
     let mut tag_name = String::default();
@@ -87,6 +95,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 "li" => Box::new(ListItemHandler::default()),
                 "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 "pre" | "code" => Box::new(CodeHandler::default()),
+                "q" | "blockquote" => Box::new(QuoteHandler::default()),
                 _ => Box::new(DummyHandler::default())
             };
 
@@ -96,7 +105,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
 
     //result.siblings.get_mut(k)
 
-    // handle this tag
+    // handle this tag, while it's not in parent chain
+    // and doesn't have child siblings
     handler.handle(&input.data, result);
 
     // save this tag name as parent for child nodes
@@ -113,8 +123,6 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
             NodeData::Element { ref name, .. } => result.siblings.get_mut(&current_depth).unwrap().push(name.local.to_string()),
             _ => {}
         };
-
-        //println!("{:?}", result);
     }
 
     // clear siblings of next level
@@ -123,9 +131,14 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
     // release parent tag
     result.parent_chain.pop();
 
+    // finish handling of tag - parent chain now doesn't contain this tag itself again
     handler.after_handle(result);
 }
 
+/// Intermediate result of HTML -> Markdown conversion.
+/// 
+/// Holds context in the form of parent tags and siblings chain
+/// and resulting string of markup content with current position.
 #[derive(Debug, Default)]
 pub struct StructuredPrinter {
     /// Chain of parents leading to upmost <html> tag
@@ -138,24 +151,24 @@ pub struct StructuredPrinter {
     data: String,
 
     /// Position in [data] for tracking non-appending cases
-    position: usize,
-
-    indent: usize
+    position: usize
 }
 
 impl StructuredPrinter {
+
+    /// Inserts newline
     fn insert_newline(&mut self) {
         self.insert_str("\n");
-        let indentation = " ".repeat(self.indent);
-        self.insert_str(&indentation);
     }
 
+    /// Insert string at current position of printer, adjust position to the end of inserted string
     fn insert_str(&mut self, it: &str) {
         self.data.insert_str(self.position, it);
         self.position += it.len();
     }
 }
 
+/// Trait interface describing abstract handler of arbitrary HTML tag.
 trait TagHandler {
     /// Handle tag encountered when walking HTML tree
     fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter);
