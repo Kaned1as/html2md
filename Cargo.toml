@@ -9,3 +9,4 @@ crate-type = ["rlib", "dylib"]
 
 [dependencies]
 html5ever = "0.22"
+regex = "0.2"

@@ -1,10 +1,13 @@
 //#![feature(alloc_system)]
 
 extern crate html5ever;
+extern crate regex;
 
 use std::boxed::Box;
 use std::borrow::Borrow;
 use std::collections::HashMap;
+
+use regex::Regex;
 
 use html5ever::parse_document;
 use html5ever::rcdom::{RcDom, Handle, NodeData};
@@ -51,10 +54,15 @@ pub fn parse(html: &str) -> String {
             last_start_tag_name: None
         }
     };
-    let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
+    let indent_matcher = Regex::new("(?m)^\\s+").unwrap();
+    let html_without_indents = indent_matcher.replace_all(html, ""); // delete indents
+
+    let newline_tag_matcher = Regex::new(">\n<").unwrap();
+    let compact_html = newline_tag_matcher.replace_all(&html_without_indents, "><"); // delete newlines between tags
+
+    let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut compact_html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result);
-    //println!("{:?}", result);
     return result.data;
 }
 
@@ -64,12 +72,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
-            let text = &contents.borrow();
-            let whitespace_between_tags = text.as_ref() == "\n";
-            let inside_pre = result.parent_chain.iter().find(|&tag| tag == "pre").is_some();
-            if !whitespace_between_tags || inside_pre {
-                result.insert_str(text);
-            }
+            result.insert_str(&contents.borrow());
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {

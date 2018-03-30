@@ -5,7 +5,8 @@ use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
 pub struct ListHandler {
-    depth: usize
+    should_indent: bool,
+    start_pos: usize
 }
 
 impl TagHandler for ListHandler {
@@ -13,24 +14,26 @@ impl TagHandler for ListHandler {
     /// we're entering "ul" pr or "ol" tag, no "li" handing here
     fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
         let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
-        self.depth = parent_lists.len();
-        if self.depth == 0 {
-            // don't indent top-level lists
-            return;
-        }
-
-        // this is one of inner lists, increase indentation
-        printer.indent += 4;
+        self.should_indent = parent_lists.len() > 0;
+        self.start_pos = printer.position;
     }
 
+    /// indent now-ready list
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        if self.depth == 0 {
-            // don't decrease indent on top-level lists
+        if !self.should_indent {
             return;
         }
 
-        // this was one of inner lists, decrease indentation
-        printer.indent -= 4;
+        let indent = 4; // 4 spaces for each indentation level
+
+        let mut index = printer.data.len();
+        while index >= self.start_pos {
+            if printer.data.as_bytes().iter().nth(index) == Some(&b'\n') {
+                printer.data.insert_str(index + 1, &" ".repeat(indent));
+                printer.position += indent;
+            }
+            index -= 1;
+        }
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
@@ -70,15 +73,10 @@ impl TagHandler for ListItemHandler {
         }
     }
 
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        if printer.data.trim_matches(' ').chars().last() != Some('\n') {
-            // insert newline after list item was finished only if internal paragraph didn't do it already
-            printer.insert_newline(); 
-        }
+    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        //return tag_name == "ul" || tag_name == "menu" || tag_name == "ol" || tag_name == "li";
         return tag_name == "li";
     }
 }

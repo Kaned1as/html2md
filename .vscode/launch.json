@@ -9,7 +9,7 @@
             "name": "Debug unit-tests",
             "type": "lldb",
             "request": "launch",
-            "program": "./target/debug/unit-fa9af9fbf9186678",
+            "program": "./target/debug/unit-461f85648b0aa43f",
             "args": [ "test_list2", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
