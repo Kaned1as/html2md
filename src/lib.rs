@@ -77,9 +77,10 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
             let text = contents.borrow().to_string();
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
             if inside_pre {
+                // this is preformatted text, insert as-is
                 result.insert_str(&text);
             } else {
-                // not inside pre, collapse whitespace
+                // regular text, collapse whitespace
                 let whitespace_pattern = Regex::new("\\s{2,}").unwrap();
                 let minified_text = whitespace_pattern.replace_all(&text, " ");
                 result.insert_str(&minified_text);
@@ -89,24 +90,25 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
             handler = match tag_name.as_ref() {
-                "html" | "head" | "body" => Box::new(DummyHandler::default()),
-                "p" | "br" => Box::new(ParagraphHandler::default()),
-                "a" => Box::new(AnchorHandler::default()),
-                "img" => Box::new(ImgHandler::default()),
+                // pagination, breaks
+                "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
+                "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
+                // formatting
+                "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
+                "pre" | "code" => Box::new(CodeHandler::default()),
+                // images, links
+                "img" => Box::new(ImgHandler::default()),
+                "a" => Box::new(AnchorHandler::default()),
+                // lists
                 "ol" | "ul" | "menu" => Box::new(ListHandler::default()),
                 "li" => Box::new(ListItemHandler::default()),
-                "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
-                "pre" | "code" => Box::new(CodeHandler::default()),
-                "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
+                // other
+                "html" | "head" | "body" => Box::new(DummyHandler::default()),
                 _ => Box::new(DummyHandler::default())
             };
-
-            //println!("element {}", name.local);
         }
     }
-
-    //result.siblings.get_mut(k)
 
     // handle this tag, while it's not in parent chain
     // and doesn't have child siblings

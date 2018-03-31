@@ -20,12 +20,13 @@ impl TagHandler for ParagraphHandler {
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         match self.paragraph_type.as_ref() {
             "p" => { printer.insert_newline(); printer.insert_newline(); }
+            "hr" => { printer.insert_newline(); printer.insert_str("---"); printer.insert_newline(); }
             "br" => printer.insert_newline(),
             _ => {}
         }
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "p" || tag_name == "br";
+        return tag_name == "p" || tag_name == "br" || tag_name == "hr";
     }
 }
