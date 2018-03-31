@@ -59,7 +59,10 @@ pub fn parse(html: &str) -> String {
     let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result);
-    return result.data;
+
+    // remove redundant newlines
+    let newline2plus_pattern = Regex::new("\\n{2,}").unwrap();
+    return newline2plus_pattern.replace_all(&result.data, "\n\n").into_owned();
 }
 
 /// Recursively walk through all DOM tree and handle all elements according to 
@@ -79,7 +82,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
             if inside_pre {
                 // this is preformatted text, insert as-is
                 result.insert_str(&text);
-            } else {
+            } else if !(text.trim().len() == 0 && result.data.chars().last() == Some('\n')) {
+                // in case it's not just a whitespace after the newline
                 // regular text, collapse whitespace
                 let whitespace_pattern = Regex::new("\\s{2,}").unwrap();
                 let minified_text = whitespace_pattern.replace_all(&text, " ");

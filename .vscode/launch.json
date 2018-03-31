@@ -10,7 +10,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "./target/debug/unit-461f85648b0aa43f",
-            "args": [ "test_list2", "--nocapture" ],
+            "args": [ "test_list3", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         },
