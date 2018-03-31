@@ -21,14 +21,15 @@ Currently supported:
 Limitations
 -------------
 
-- doesn't handle html with whitespaces/indents very well
-- no tables support
+- doesn't handle html with whitespaces/indents very well - WIP
+- no tables support yet
 - no markdown flavors support (-/+ unordered list styles, ##/== headers etc.)
 - doesn't yet detect code style
 
 Used libraries
 -------------
 [html5ever](https://github.com/servo/html5ever) - Servo egine HTML parsing library, used to convert html input to DOM
+
 [regex](https://github.com/rust-lang/regex) - PCRE support in Rust, used to correct whitespaces
 
 Contributions
