@@ -64,3 +64,21 @@ fn test_list2() {
     </p>"#);
     println!("{}", md);
 }
+
+#[test]
+fn test_list3() {
+    let md = parse(r#"<p><ul><li>Seven things has lady Lackless<ul><li>Kingkiller</li><li>Chronicles</li><li>Series</li></ul></li><li>Keeps them underneath her black dress</li><li>One a thing that's not for wearing</li></ul></p>"#);
+    println!("{}", md);
+}
+
+#[test]
+fn test_quotes() {
+    let md = parse("<p><blockquote>here's a quote\n next line of it</blockquote></p>");
+    println!("{}", md);
+}
+
+#[test]
+fn test_quotes2() {
+    let md = parse("<p><blockquote>here's<blockquote>nested quote!</blockquote> a quote\n next line of it</blockquote></p>");
+    println!("{}", md);
+}

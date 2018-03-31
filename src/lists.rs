@@ -13,9 +13,13 @@ impl TagHandler for ListHandler {
 
     /// we're entering "ul" pr or "ol" tag, no "li" handing here
     fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
-        let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
-        self.should_indent = parent_lists.len() > 0;
-        self.start_pos = printer.position;
+        {
+            let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
+            self.should_indent = parent_lists.len() > 0;
+            self.start_pos = printer.position;
+        }
+
+        printer.insert_newline(); 
     }
 
     /// indent now-ready list
@@ -25,7 +29,6 @@ impl TagHandler for ListHandler {
         }
 
         let indent = 4; // 4 spaces for each indentation level
-
         let mut index = printer.data.len();
         while index >= self.start_pos {
             if printer.data.as_bytes().iter().nth(index) == Some(&b'\n') {

@@ -56,13 +56,7 @@ pub fn parse(html: &str) -> String {
             last_start_tag_name: None
         }
     };
-    let indent_matcher = Regex::new("(?m)^\\s+").unwrap();
-    let html_without_indents = indent_matcher.replace_all(html, ""); // delete indents
-
-    let newline_tag_matcher = Regex::new(">\n<").unwrap();
-    let compact_html = newline_tag_matcher.replace_all(&html_without_indents, "><"); // delete newlines between tags
-
-    let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut compact_html.as_bytes()).unwrap();
+    let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result);
     return result.data;
@@ -80,7 +74,16 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
-            result.insert_str(&contents.borrow());
+            let text = contents.borrow().to_string();
+            let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
+            if inside_pre {
+                result.insert_str(&text);
+            } else {
+                // not inside pre, collapse whitespace
+                let whitespace_pattern = Regex::new("\\s+").unwrap();
+                let minified_text = whitespace_pattern.replace_all(&text, " ");
+                result.insert_str(&minified_text);
+            }
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
