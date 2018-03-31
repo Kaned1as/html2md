@@ -1,0 +1,27 @@
+variables:
+  GET_SOURCES_ATTEMPTS: "3"
+  GIT_SUBMODULE_STRATEGY: "recursive"
+
+stages:
+  - linux build
+
+
+
+build on default image:
+  image: rust
+  stage: linux build
+  dependencies: []
+  before_script: &common_compile_debian
+    - apt-get update -qq && apt-get install -y -qq binutils
+    - export CARGO_HOME="${PWD}/.cargo_cache"
+  script: &common_script
+    - cargo build --release
+  after_script:
+    - strip target/release/libhtml2md.so
+  artifacts: &common_artifacts
+    paths:
+      - target/release/libhtml2md.so
+  cache:
+    paths:
+      - target/
+      - .cargo_cache/
