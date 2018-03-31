@@ -17,13 +17,12 @@ impl TagHandler for HeaderHandler {
         };
 
         printer.insert_newline(); 
-
-        if self.header_type == "h3" {
-            printer.insert_str("### ");
-        }
-
-        if self.header_type == "h4" {
-            printer.insert_str("#### ");
+        match self.header_type.as_ref() {
+            "h3" => printer.insert_str("### "),
+            "h4" => printer.insert_str("#### "),
+            "h5" => printer.insert_str("##### "),
+            "h6" => printer.insert_str("###### "),
+            _ => {}
         }
     }
 
@@ -33,11 +32,13 @@ impl TagHandler for HeaderHandler {
             "h2" => printer.insert_str("\n----------\n"),
             "h3" => printer.insert_str(" ###\n"),
             "h4" => printer.insert_str(" ####\n"),
+            "h5" => printer.insert_str(" #####\n"),
+            "h6" => printer.insert_str(" ######\n"),
             _ => {}
         }
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "h1" || tag_name == "h2" || tag_name == "h3" || tag_name == "h4";
+        return tag_name == "h1" || tag_name == "h2" || tag_name == "h3" || tag_name == "h4" || tag_name == "h5" || tag_name == "h6";
     }
 }

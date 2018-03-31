@@ -9,6 +9,8 @@ pub struct CodeHandler {
 }
 
 impl CodeHandler {
+
+    /// Used in both starting and finishing handling
     fn do_handle(&mut self, printer: &mut StructuredPrinter) {
         let immediate_parent = printer.parent_chain.last().unwrap().to_owned();
         if self.code_type == "code" && immediate_parent == "pre" {
@@ -17,14 +19,10 @@ impl CodeHandler {
             return;
         }
 
-        if self.code_type == "pre" {
-            // switch to code mode
-            printer.insert_str("```");
-        }
-
-        if self.code_type == "code" {
-            // switch to inline code mode
-            printer.insert_str("`");
+        match self.code_type.as_ref() {
+            "pre" => printer.insert_str("```"),
+            "code" | "samp" => printer.insert_str("`"),
+            _ => {}
         }
     }
 }
@@ -44,6 +42,6 @@ impl TagHandler for CodeHandler {
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "code" || tag_name == "pre";
+        return tag_name == "code" || tag_name == "pre" || tag_name == "samp";
     }
 }

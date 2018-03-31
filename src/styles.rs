@@ -18,9 +18,10 @@ impl TagHandler for StyleHandler {
 
         // starting markup
         match self.style_type.as_ref() {
-            "b" | "strong" => printer.insert_str("**"),
-            "i" | "em" => printer.insert_str("*"),
-            "s" | "del" => printer.insert_str("~~"),
+            "b" | "strong" => printer.insert_str("**"), // bold
+            "i" | "em" => printer.insert_str("*"),      // italic
+            "s" | "del" => printer.insert_str("~~"),    // strikethrough
+            "u" | "ins" => printer.insert_str("__"),    // underline
             _ => {}
         }
     }
@@ -31,11 +32,12 @@ impl TagHandler for StyleHandler {
             "b" | "strong" => printer.insert_str("**"),
             "i" | "em" => printer.insert_str("*"),
             "s" | "del" => printer.insert_str("~~"),
+            "u" | "ins" => printer.insert_str("__"),
             _ => {}
         }
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "b" || tag_name == "i" || tag_name == "s" || tag_name == "strong" || tag_name == "em" || tag_name == "del";
+        return tag_name == "b" || tag_name == "i" || tag_name == "s" || tag_name == "u" || tag_name == "strong" || tag_name == "em" || tag_name == "del" || tag_name == "ins";
     }
 }

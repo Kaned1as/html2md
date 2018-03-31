@@ -80,7 +80,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 result.insert_str(&text);
             } else {
                 // not inside pre, collapse whitespace
-                let whitespace_pattern = Regex::new("\\s+").unwrap();
+                let whitespace_pattern = Regex::new("\\s{2,}").unwrap();
                 let minified_text = whitespace_pattern.replace_all(&text, " ");
                 result.insert_str(&minified_text);
             }
@@ -98,7 +98,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
                 "li" => Box::new(ListItemHandler::default()),
                 "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                 "pre" | "code" => Box::new(CodeHandler::default()),
-                "q" | "blockquote" => Box::new(QuoteHandler::default()),
+                "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
                 _ => Box::new(DummyHandler::default())
             };
 

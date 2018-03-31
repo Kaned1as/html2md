@@ -31,6 +31,6 @@ impl TagHandler for QuoteHandler {
     }
 
     fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "q" || tag_name == "blockquote";
+        return tag_name == "q" || tag_name == "cite" || tag_name == "blockquote";
     }
 }
