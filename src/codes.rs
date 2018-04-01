@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct CodeHandler {
+pub(super) struct CodeHandler {
     code_type: String
 }
 

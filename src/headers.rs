@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct HeaderHandler {
+pub(super) struct HeaderHandler {
     header_type: String,
 }
 

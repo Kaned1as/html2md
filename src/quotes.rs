@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct QuoteHandler {
+pub(super) struct QuoteHandler {
     start_pos: usize
 }
 

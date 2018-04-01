@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct ImgHandler;
+pub(super) struct ImgHandler;
 
 impl TagHandler for ImgHandler {
     

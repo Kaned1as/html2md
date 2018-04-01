@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct ParagraphHandler {
+pub(super) struct ParagraphHandler {
     paragraph_type: String
 }
 

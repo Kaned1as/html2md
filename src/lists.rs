@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct ListHandler {
+pub(super) struct ListHandler {
     should_indent: bool,
     start_pos: usize
 }

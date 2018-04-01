@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct StyleHandler {
+pub(super) struct StyleHandler {
     style_type: String
 }
 

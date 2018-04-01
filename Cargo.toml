@@ -18,6 +18,7 @@ name = "html2md"
 crate-type = ["rlib", "dylib", "staticlib"]
 
 [dependencies]
+lazy_static = "1.0.0"
 html5ever = "0.22"
 regex = "0.2"
 

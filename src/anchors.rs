@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use html5ever::rcdom::NodeData;
 
 #[derive(Default)]
-pub struct AnchorHandler;
+pub(super) struct AnchorHandler;
 
 impl TagHandler for AnchorHandler {
     

@@ -1,5 +1,7 @@
 //#![feature(alloc_system)]
 
+#[macro_use]
+extern crate lazy_static;
 extern crate html5ever;
 extern crate regex;
 
@@ -7,15 +9,15 @@ use std::boxed::Box;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 
+use std::os::raw::{c_char};
+use std::ffi::{CString, CStr};
+
 use regex::Regex;
 
 use html5ever::parse_document;
 use html5ever::rcdom::{RcDom, Handle, NodeData};
 use html5ever::driver::ParseOpts;
 use html5ever::tendril::TendrilSink;
-use html5ever::tree_builder::TreeBuilderOpts;
-use html5ever::tree_builder::QuirksMode;
-use html5ever::tokenizer::TokenizerOpts;
 
 mod dummy;
 mod anchors;
@@ -38,35 +40,37 @@ use styles::StyleHandler;
 use codes::CodeHandler;
 use quotes::QuoteHandler;
 
-pub fn parse(html: &str) -> String {
-    let opts = ParseOpts {
-        tree_builder: TreeBuilderOpts {
-            exact_errors: false,
-            scripting_enabled: false,
-            iframe_srcdoc: false,
-            drop_doctype: true,
-            ignore_missing_rules: true,
-            quirks_mode: QuirksMode::NoQuirks
-        },
-        tokenizer: TokenizerOpts {
-            exact_errors: false,
-            discard_bom: true,
-            profile: false,
-            initial_state: None,
-            last_start_tag_name: None
-        }
-    };
-    let dom = parse_document(RcDom::default(), opts).from_utf8().read_from(&mut html.as_bytes()).unwrap();
+lazy_static! {
+    static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
+    static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{2,}").unwrap();      // for Markdown post-processing
+    static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m) +$").unwrap();         // for Markdown post-processing
+}
+
+/// FFI variant for HTML -> Markdown conversion for calling from other languages
+#[no_mangle]
+pub extern fn parse(html: *const c_char) -> *const c_char {
+    let in_html = unsafe { CStr::from_ptr(html) };
+    let out_md = parse_html(&in_html.to_string_lossy());
+
+    CString::new(out_md).unwrap().into_raw()
+}
+
+/// Main function of this library. Parses incoming HTML, converts it into Markdown 
+/// and returns converted string.
+pub fn parse_html(html: &str) -> String {
+    let dom = parse_document(RcDom::default(), ParseOpts::default()).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result);
 
     // remove redundant newlines
-    let newline2plus_pattern = Regex::new("\\n{2,}").unwrap();
-    return newline2plus_pattern.replace_all(&result.data, "\n\n").into_owned();
+    let intermediate1 = EXCESSIVE_NEWLINE_PATTERN.replace_all(&result.data, "\n\n");
+    let intermediate2 = TRAILING_SPACE_PATTERN.replace_all(&intermediate1, "");
+
+    intermediate2.into_owned()
 }
 
 /// Recursively walk through all DOM tree and handle all elements according to 
-/// HTML tag -> Markdown syntax mapping. Text content goes as-is.
+/// HTML tag -> Markdown syntax mapping. Text content is trimmed to one whitespace according to HTML5 rules.
 /// 
 /// # Arguments
 /// `input` is DOM tree or its subtree
@@ -85,8 +89,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
             } else if !(text.trim().len() == 0 && result.data.chars().last() == Some('\n')) {
                 // in case it's not just a whitespace after the newline
                 // regular text, collapse whitespace
-                let whitespace_pattern = Regex::new("\\s{2,}").unwrap();
-                let minified_text = whitespace_pattern.replace_all(&text, " ");
+                let minified_text = EXCESSIVE_WHITESPACE_PATTERN.replace_all(&text, " ");
                 result.insert_str(&minified_text);
             }
         }
