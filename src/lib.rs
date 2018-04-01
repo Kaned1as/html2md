@@ -191,3 +191,24 @@ trait TagHandler {
     /// is this tag handler applicable for specified tag
     fn is_applicable(&self, tag_name: String) -> bool;
 }
+
+/// Expose the JNI interface for android below
+#[cfg(target_os="android")]
+#[allow(non_snake_case)]
+pub mod android {
+    extern crate jni;
+
+    use super::parse_html;
+
+    use self::jni::JNIEnv;
+    use self::jni::objects::{JClass, JString};
+    use self::jni::sys::{jstring};
+
+    #[no_mangle]
+    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parse(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
+        let html_java : String = env.get_string(html).expect("Couldn't get java string!").into();
+        let markdown = parse_html(&html_java);
+        let output = env.new_string(markdown).expect("Couldn't create java string!");
+        output.into_inner()
+    }
+}
