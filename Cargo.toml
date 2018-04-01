@@ -1,12 +1,26 @@
 [package]
 name = "html2md"
 version = "0.1.0"
-authors = ["Kanedias <kanedias@xaker.ru>"]
+authors = ["Oleg `Kanedias` Chernovskiy <kanedias@xaker.ru>"]
+
+repository = "https://gitlab.com/Kanedias/html2md"
+readme = "README.md"
+keywords = ["html", "markdown", "converter"]
+categories = ["development-tools", "parsing", "parser-implementations"]
+license = "GPL-3.0-or-later"
+
+[badges]
+gitlab = { repository = "https://gitlab.com/Kanedias/html2md", branch = "master" }
+maintenance = { status = "experimental" }
 
 [lib]
 name = "html2md"
-crate-type = ["rlib", "dylib"]
+crate-type = ["rlib", "dylib", "staticlib"]
 
 [dependencies]
 html5ever = "0.22"
 regex = "0.2"
+
+[profile.release]
+lto = true
+panic = 'abort'
