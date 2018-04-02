@@ -11,7 +11,7 @@ categories = ["development-tools", "parsing", "parser-implementations"]
 license = "GPL-3.0+"
 
 [badges]
-gitlab = { repository = "https://gitlab.com/Kanedias/html2md", branch = "master" }
+gitlab = { repository = "Kanedias/html2md", branch = "master" }
 maintenance = { status = "experimental" }
 
 [lib]
