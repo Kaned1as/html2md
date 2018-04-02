@@ -71,14 +71,14 @@ fn test_list_formatted() {
     "#);
     assert_eq!(md, r#"
 
-* You should NEVER see this error 
-    * Broken lines, broken strings 
-    * Broken threads, broken springs 
-    * Broken idols, broken heads 
-    * People sleep in broken beds   
-* Ain't no use jiving 
-* Ain't no use joking 
-* EVERYTHING IS BROKEN "#)
+* You should NEVER see this error
+    * Broken lines, broken strings
+    * Broken threads, broken springs
+    * Broken idols, broken heads
+    * People sleep in broken beds
+* Ain't no use jiving
+* Ain't no use joking
+* EVERYTHING IS BROKEN"#)
 }
 
 #[test]

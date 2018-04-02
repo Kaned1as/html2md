@@ -56,12 +56,17 @@ pub extern fn parse(html: *const c_char) -> *const c_char {
     CString::new(out_md).unwrap().into_raw()
 }
 
-/// Main function of this library. Parses incoming HTML, converts it into Markdown 
-/// and returns converted string.
-pub fn parse_html(html: &str) -> String {
+/// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
+/// in order to register custom tag hadler for tags you want.
+/// 
+/// You can also override standard tag handlers this way
+/// # Arguments
+/// `html` is source HTML as `String`
+/// `custom` is custom tag hadler producers for tags you want, can be empty
+pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFactory>>) -> String {
     let dom = parse_document(RcDom::default(), ParseOpts::default()).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
-    walk(&dom.document, &mut result);
+    walk(&dom.document, &mut result, custom);
 
     // remove redundant newlines
     let intermediate1 = EXCESSIVE_NEWLINE_PATTERN.replace_all(&result.data, "\n\n");
@@ -70,13 +75,22 @@ pub fn parse_html(html: &str) -> String {
     intermediate2.into_owned()
 }
 
+/// Main function of this library. Parses incoming HTML, converts it into Markdown 
+/// and returns converted string.
+/// # Arguments
+/// `html` is source HTML as `String`
+pub fn parse_html(html: &str) -> String {
+    parse_html_custom(html, &HashMap::default())
+}
+
 /// Recursively walk through all DOM tree and handle all elements according to 
 /// HTML tag -> Markdown syntax mapping. Text content is trimmed to one whitespace according to HTML5 rules.
 /// 
 /// # Arguments
 /// `input` is DOM tree or its subtree
 /// `result` is output holder with position and context tracking
-fn walk(input: &Handle, result: &mut StructuredPrinter) {
+/// `custom` is custom tag hadler producers for tags you want, can be empty
+fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<TagHandlerFactory>>) {
     let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
     let mut tag_name = String::default();
     match input.data {
@@ -97,26 +111,35 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
-            handler = match tag_name.as_ref() {
-                // pagination, breaks
-                "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
-                "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
-                // formatting
-                "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
-                "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
-                "pre" | "code" => Box::new(CodeHandler::default()),
-                // images, links
-                "img" => Box::new(ImgHandler::default()),
-                "a" => Box::new(AnchorHandler::default()),
-                // lists
-                "ol" | "ul" | "menu" => Box::new(ListHandler::default()),
-                "li" => Box::new(ListItemHandler::default()),
-                // as-is
-                "sub" | "sup" => Box::new(IdentityHandler::default()),
-                // other
-                "html" | "head" | "body" => Box::new(DummyHandler::default()),
-                _ => Box::new(DummyHandler::default())
-            };
+
+            // try to get tag handler from user-supplied factory
+            if custom.contains_key(&tag_name) {
+                // have user-supplied factory, instantiate a handler for this tag
+                let factory = custom.get(&tag_name).unwrap();
+                handler = factory.instantiate();
+            } else {
+                // no user-supplied factory, take one of built-in ones
+                handler = match tag_name.as_ref() {
+                    // pagination, breaks
+                    "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
+                    "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
+                    // formatting
+                    "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
+                    "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
+                    "pre" | "code" => Box::new(CodeHandler::default()),
+                    // images, links
+                    "img" => Box::new(ImgHandler::default()),
+                    "a" => Box::new(AnchorHandler::default()),
+                    // lists
+                    "ol" | "ul" | "menu" => Box::new(ListHandler::default()),
+                    "li" => Box::new(ListItemHandler::default()),
+                    // as-is
+                    "sub" | "sup" => Box::new(IdentityHandler::default()),
+                    // other
+                    "html" | "head" | "body" => Box::new(DummyHandler::default()),
+                    _ => Box::new(DummyHandler::default())
+                };
+            }
         }
     }
 
@@ -132,7 +155,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter) {
     result.siblings.insert(current_depth, vec![]);
 
     for child in input.children.borrow().iter() {
-        walk(child.borrow(), result);
+        walk(child.borrow(), result, custom);
 
         match child.data {
             NodeData::Element { ref name, .. } => result.siblings.get_mut(&current_depth).unwrap().push(name.local.to_string()),
@@ -183,6 +206,10 @@ impl StructuredPrinter {
     }
 }
 
+pub trait TagHandlerFactory {
+    fn instantiate(&self) -> Box<TagHandler>;
+}
+
 /// Trait interface describing abstract handler of arbitrary HTML tag.
 pub trait TagHandler {
     /// Handle tag encountered when walking HTML tree
@@ -190,9 +217,6 @@ pub trait TagHandler {
 
     /// Executed after all children of this tag have been processed
     fn after_handle(&mut self, printer: &mut StructuredPrinter);
-
-    /// is this tag handler applicable for specified tag
-    fn is_applicable(&self, tag_name: String) -> bool;
 }
 
 /// Expose the JNI interface for android below

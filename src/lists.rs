@@ -38,10 +38,6 @@ impl TagHandler for ListHandler {
             index -= 1;
         }
     }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "ul" || tag_name == "menu" || tag_name == "ol";
-    }
 }
 
 #[derive(Default)]
@@ -77,9 +73,5 @@ impl TagHandler for ListItemHandler {
     }
 
     fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
-    }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "li";
     }
 }

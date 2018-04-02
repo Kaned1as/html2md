@@ -36,8 +36,4 @@ impl TagHandler for StyleHandler {
             _ => {}
         }
     }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "b" || tag_name == "i" || tag_name == "s" || tag_name == "u" || tag_name == "strong" || tag_name == "em" || tag_name == "del" || tag_name == "ins";
-    }
 }

@@ -41,8 +41,4 @@ impl TagHandler for ImgHandler {
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         printer.position = printer.data.len();
     }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "img";
-    }
 }

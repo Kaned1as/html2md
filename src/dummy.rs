@@ -15,10 +15,6 @@ impl TagHandler for DummyHandler {
     fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
         
     }
-
-    fn is_applicable(&self, _tag_name: String) -> bool {
-        return true; // dummy handler can process anything, but it should be last resort
-    }
 }
 
 #[derive(Default)]
@@ -42,9 +38,5 @@ impl TagHandler for IdentityHandler {
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         printer.insert_str(&format!("</{}>", self.tag_name));
-    }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "sub" || tag_name == "sup";
     }
 }

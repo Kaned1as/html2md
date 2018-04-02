@@ -25,8 +25,4 @@ impl TagHandler for ParagraphHandler {
             _ => {}
         }
     }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "p" || tag_name == "br" || tag_name == "hr";
-    }
 }

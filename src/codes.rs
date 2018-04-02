@@ -40,8 +40,4 @@ impl TagHandler for CodeHandler {
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         self.do_handle(printer);
     }
-
-    fn is_applicable(&self, tag_name: String) -> bool {
-        return tag_name == "code" || tag_name == "pre" || tag_name == "samp";
-    }
 }
