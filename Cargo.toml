@@ -3,11 +3,12 @@ name = "html2md"
 version = "0.1.0"
 authors = ["Oleg `Kanedias` Chernovskiy <kanedias@xaker.ru>"]
 
+description = "Library and binary to convert simple html documents into markdown"
 repository = "https://gitlab.com/Kanedias/html2md"
 readme = "README.md"
 keywords = ["html", "markdown", "converter"]
 categories = ["development-tools", "parsing", "parser-implementations"]
-license = "GPL-3.0-or-later"
+license = "GPL-3.0+"
 
 [badges]
 gitlab = { repository = "https://gitlab.com/Kanedias/html2md", branch = "master" }
