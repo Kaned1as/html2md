@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::NodeData;
+use html5ever::rcdom::{Handle,NodeData};
 
 #[derive(Default)]
 pub(super) struct CodeHandler {
@@ -29,9 +29,9 @@ impl CodeHandler {
 
 impl TagHandler for CodeHandler {
     
-    fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter) {
-        self.code_type = match tag {
-            &NodeData::Element { ref name, .. } => name.local.to_string(),
+    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+        self.code_type = match tag.data {
+            NodeData::Element { ref name, .. } => name.local.to_string(),
             _ => String::new()
         };
 

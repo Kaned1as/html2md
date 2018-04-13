@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::NodeData;
+use html5ever::rcdom::{Handle,NodeData};
 
 #[derive(Default)]
 pub(super) struct QuoteHandler {
@@ -10,7 +10,7 @@ pub(super) struct QuoteHandler {
 
 impl TagHandler for QuoteHandler {
     
-    fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
+    fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         self.start_pos = printer.position;
         printer.insert_newline();
     }

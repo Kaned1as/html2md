@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::NodeData;
+use html5ever::rcdom::{Handle,NodeData};
 
 #[derive(Default)]
 pub(super) struct ListHandler {
@@ -11,8 +11,8 @@ pub(super) struct ListHandler {
 
 impl TagHandler for ListHandler {
 
-    /// we're entering "ul" pr or "ol" tag, no "li" handing here
-    fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
+    /// we're entering "ul" or "ol" tag, no "li" handing here
+    fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         {
             let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
             self.should_indent = parent_lists.len() > 0;
@@ -47,7 +47,7 @@ pub struct ListItemHandler {
 
 impl TagHandler for ListItemHandler {
 
-    fn handle(&mut self, _tag: &NodeData, printer: &mut StructuredPrinter) {
+    fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         {
             let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
             let nearest_parent_list = parent_lists.first();

@@ -28,6 +28,7 @@ mod lists;
 mod styles;
 mod codes;
 mod quotes;
+mod tables;
 
 use dummy::DummyHandler;
 use dummy::IdentityHandler;
@@ -40,6 +41,9 @@ use lists::ListHandler;
 use styles::StyleHandler;
 use codes::CodeHandler;
 use quotes::QuoteHandler;
+use tables::TableHandler;
+use tables::TableHeaderHandler;
+use tables::TableRowHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
@@ -135,6 +139,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     "li" => Box::new(ListItemHandler::default()),
                     // as-is
                     "sub" | "sup" => Box::new(IdentityHandler::default()),
+                    // tables, handled fully internally as you can't have nested tags there, only text
+                    "table" => Box::new(TableHandler::default()),
                     // other
                     "html" | "head" | "body" => Box::new(DummyHandler::default()),
                     _ => Box::new(DummyHandler::default())
@@ -145,7 +151,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 
     // handle this tag, while it's not in parent chain
     // and doesn't have child siblings
-    handler.handle(&input.data, result);
+    handler.handle(&input, result);
 
     // save this tag name as parent for child nodes
     result.parent_chain.push(tag_name.to_string());     // e.g. it was ["body"] and now it's ["body", "p"]
@@ -213,7 +219,7 @@ pub trait TagHandlerFactory {
 /// Trait interface describing abstract handler of arbitrary HTML tag.
 pub trait TagHandler {
     /// Handle tag encountered when walking HTML tree
-    fn handle(&mut self, tag: &NodeData, printer: &mut StructuredPrinter);
+    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter);
 
     /// Executed after all children of this tag have been processed
     fn after_handle(&mut self, printer: &mut StructuredPrinter);
