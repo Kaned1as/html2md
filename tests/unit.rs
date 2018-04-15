@@ -98,3 +98,27 @@ fn test_quotes2() {
 
 "#)
 }
+
+
+#[test]
+fn test_tables() {
+    let md = parse_html(r#"<table>
+  <thead>
+    <tr>
+      <th scope='col'>Minor1</th>
+      <th scope='col'>Minor2</th>
+      <th scope='col'>Minor3</th>
+      <th scope='col'>Minor4</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>col1</td>
+      <td>col2</td>
+      <td>col3</td>
+      <td>col4</td>
+    </tr>
+  </tbody>
+</table>"#);
+    println!("{}", md);
+}

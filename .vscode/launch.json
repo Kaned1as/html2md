@@ -9,8 +9,8 @@
             "name": "Debug unit-tests",
             "type": "lldb",
             "request": "launch",
-            "program": "./target/debug/unit-461f85648b0aa43f",
-            "args": [ "test_list3", "--nocapture" ],
+            "program": "./target/debug/unit-2a4ef31a993e6a6e",
+            "args": [ "test_tables", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         },

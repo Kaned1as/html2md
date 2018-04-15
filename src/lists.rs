@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::{Handle,NodeData};
+use html5ever::rcdom::Handle;
 
 #[derive(Default)]
 pub(super) struct ListHandler {

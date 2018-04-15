@@ -42,8 +42,6 @@ use styles::StyleHandler;
 use codes::CodeHandler;
 use quotes::QuoteHandler;
 use tables::TableHandler;
-use tables::TableHeaderHandler;
-use tables::TableRowHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
@@ -139,7 +137,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     "li" => Box::new(ListItemHandler::default()),
                     // as-is
                     "sub" | "sup" => Box::new(IdentityHandler::default()),
-                    // tables, handled fully internally as you can't have nested tags there, only text
+                    // tables, handled fully internally as markdown can't have nested content in tables
+                    // supports only single tables as of now
                     "table" => Box::new(TableHandler::default()),
                     // other
                     "html" | "head" | "body" => Box::new(DummyHandler::default()),
@@ -161,6 +160,10 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
     result.siblings.insert(current_depth, vec![]);
 
     for child in input.children.borrow().iter() {
+        if handler.skip_descendants() {
+            continue;
+        }
+        
         walk(child.borrow(), result, custom);
 
         match child.data {
@@ -223,6 +226,10 @@ pub trait TagHandler {
 
     /// Executed after all children of this tag have been processed
     fn after_handle(&mut self, printer: &mut StructuredPrinter);
+
+    fn skip_descendants(&self) -> bool {
+        return false;
+    }
 }
 
 /// Expose the JNI interface for android below

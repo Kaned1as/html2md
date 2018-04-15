@@ -27,6 +27,6 @@ regex = "0.2"
 lto = true
 panic = 'abort'
 
-# TO use this on Android we need JNI
+# To use this project on Android we need JNI
 [target.'cfg(target_os="android")'.dependencies]
 jni = { version = "0.9.3", default-features = false }
