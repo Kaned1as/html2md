@@ -120,5 +120,118 @@ fn test_tables() {
     </tr>
   </tbody>
 </table>"#);
-    println!("{}", md);
+
+    assert_eq!(md, r#"
+|Minor1|Minor2|Minor3|Minor4|
+|------|------|------|------|
+| col1 | col2 | col3 | col4 |
+"#);
+}
+
+#[test]
+fn test_tables_invalid_more_headers() {
+    let md = parse_html(r#"<table>
+  <thead>
+    <tr>
+      <th scope='col'>Minor1</th>
+      <th scope='col'>Minor2</th>
+      <th scope='col'>Minor3</th>
+      <th scope='col'>Minor4</th>
+      <th scope='col'>Minor5</th>
+      <th scope='col'>Minor6</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>col1</td>
+      <td>col2</td>
+      <td>col3</td>
+      <td>col4</td>
+    </tr>
+  </tbody>
+</table>"#);
+
+    assert_eq!(md, r#"
+|Minor1|Minor2|Minor3|Minor4|Minor5|Minor6|
+|------|------|------|------|------|------|
+| col1 | col2 | col3 | col4 |      |      |
+"#);
+}
+
+#[test]
+fn test_tables_invalid_more_rows() {
+    let md = parse_html(r#"<table>
+  <thead>
+    <tr>
+      <th scope='col'>Minor1</th>
+      <th scope='col'>Minor2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>col1</td>
+      <td>col2</td>
+      <td>col3</td>
+      <td>col4</td>
+    </tr>
+  </tbody>
+</table>"#);
+
+    assert_eq!(md, r#"
+|Minor1|Minor2|    |    |
+|------|------|----|----|
+| col1 | col2 |col3|col4|
+"#);
+}
+
+#[test]
+fn test_tables_odd_column_width() {
+    let md = parse_html(r#"<table>
+  <thead>
+    <tr>
+      <th scope='col'>Minor</th>
+      <th scope='col'>Major</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>col1</td>
+      <td>col2</td>
+    </tr>
+  </tbody>
+</table>"#);
+
+    assert_eq!(md, r#"
+|Minor|Major|
+|-----|-----|
+|col1 |col2 |
+"#);
+}
+
+#[test]
+fn test_tables_alignment() {
+    let md = parse_html(r#"<table>
+  <thead>
+    <tr>
+      <th align='right'>Minor1</th>
+      <th align='center'>Minor2</th>
+      <th align='right'>Minor3</th>
+      <th align='left'>Minor4</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>col1</td>
+      <td>col2</td>
+      <td>col3</td>
+      <td>col4</td>
+    </tr>
+  </tbody>
+</table>"#);
+
+    assert_eq!(md, r#"
+|Minor1|Minor2|Minor3|Minor4|
+|-----:|:----:|-----:|:-----|
+| col1 | col2 | col3 | col4 |
+"#);
 }
