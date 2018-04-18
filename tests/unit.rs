@@ -26,6 +26,11 @@ fn test_anchor3() {
     assert_eq!(md, "[APOSIMZ](http://ya.ru)\n\n[SIDONIA](http://yandex.ru)\n\n")
 }
 
+#[test]
+fn test_escaping() {
+    let md = parse_html(r#"<p>*god*'s in his **heaven** - all is right with the __world__</p>"#);
+    assert_eq!(md, "\\*god\\*\'s in his \\*\\*heaven\\*\\* - all is right with the \\_\\_world\\_\\_\n\n")
+}
 
 #[test]
 fn test_image() {

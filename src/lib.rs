@@ -47,6 +47,7 @@ lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{2,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m) +$").unwrap();         // for Markdown post-processing
+    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
 }
 
 /// FFI variant for HTML -> Markdown conversion for calling from other languages
@@ -98,7 +99,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
-            let text = contents.borrow().to_string();
+            let text = escape_markdown(&contents.borrow());
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
             if inside_pre {
                 // this is preformatted text, insert as-is
@@ -180,6 +181,17 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 
     // finish handling of tag - parent chain now doesn't contain this tag itself again
     handler.after_handle(result);
+}
+
+fn escape_markdown(text: &str) -> String {
+    let data = text.to_string();
+    let data = BEGINNING_OF_LIST_PATTERN.replace(&data, "\\$0");
+    let data = data.replace("*", "\\*");
+    let data = data.replace("_", "\\_");
+
+    // no handling of more complicated cases such as
+    // ![] or []() ones, for now this will suffice
+    return data;
 }
 
 /// Intermediate result of HTML -> Markdown conversion.
