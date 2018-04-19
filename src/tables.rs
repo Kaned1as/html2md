@@ -30,7 +30,7 @@ impl TagHandler for TableHandler {
             }
             // have rows with content, set column count
             column_count = collect_children(&most_big_row.unwrap(), any_matcher).len();
-            column_widths = vec![1; column_count];
+            column_widths = vec![3; column_count];
 
             // detect max column width
             for row in &rows {
@@ -135,30 +135,28 @@ fn pad_cell_text(tag: &Option<&Handle>, column_width: usize) -> String {
     if let Some(cell) = tag {
         // have header at specified position
         let text = to_text(cell);
-        if text.len() > 0 {
-            // compute difference between width and text length
-            let len_diff = column_width - text.len();
-            if len_diff > 0 {
-                // should pad
-                if len_diff > 1 {
-                    // should pad from both sides
-                    let pad_len = len_diff / 2;
-                    let remainder = len_diff % 2;
-                    result.push_str(&" ".repeat(pad_len));
-                    result.push_str(&text);
-                    result.push_str(&" ".repeat(pad_len + remainder));
-                } else {
-                    // it's just one space, add at the end
-                    result.push_str(&text);
-                    result.push(' ');
-                }
-            } else {
-                // shouldn't pad, text fills whole cell
+        // compute difference between width and text length
+        let len_diff = column_width - text.len();
+        if len_diff > 0 {
+            // should pad
+            if len_diff > 1 {
+                // should pad from both sides
+                let pad_len = len_diff / 2;
+                let remainder = len_diff % 2;
+                result.push_str(&" ".repeat(pad_len));
                 result.push_str(&text);
+                result.push_str(&" ".repeat(pad_len + remainder));
+            } else {
+                // it's just one space, add at the end
+                result.push_str(&text);
+                result.push(' ');
             }
+        } else {
+            // shouldn't pad, text fills whole cell
+            result.push_str(&text);
         }
     } else {
-        // no text in this cell, pad whole row
+        // no text in this cell, fill cell with spaces
         let pad_len = column_width;
         result.push_str(&" ".repeat(pad_len));
     }
