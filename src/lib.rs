@@ -47,6 +47,7 @@ lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{2,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m) +$").unwrap();         // for Markdown post-processing
+    static ref LINE_BREAK_PATTERN : Regex = Regex::new("<br/>").unwrap();               // for Markdown post-processing
     static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
 }
 
@@ -72,10 +73,11 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFact
     walk(&dom.document, &mut result, custom);
 
     // remove redundant newlines
-    let intermediate1 = EXCESSIVE_NEWLINE_PATTERN.replace_all(&result.data, "\n\n");
-    let intermediate2 = TRAILING_SPACE_PATTERN.replace_all(&intermediate1, "");
+    let intermediate1 = TRAILING_SPACE_PATTERN.replace_all(&result.data, "");           // cut trailing spaces
+    let intermediate2 = LINE_BREAK_PATTERN.replace_all(&intermediate1, "  \n");         // make line breaks md-flavored
+    let intermediate3 = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate2, "\n\n");  // > 3 newlines - not handled by markdown anyway
 
-    intermediate2.into_owned()
+    intermediate3.into_owned()
 }
 
 /// Main function of this library. Parses incoming HTML, converts it into Markdown 
