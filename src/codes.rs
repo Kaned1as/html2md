@@ -14,13 +14,12 @@ impl CodeHandler {
     fn do_handle(&mut self, printer: &mut StructuredPrinter) {
         let immediate_parent = printer.parent_chain.last().unwrap().to_owned();
         if self.code_type == "code" && immediate_parent == "pre" {
-            // we are already in "code" mode, just add newline
-            printer.insert_newline();
+            // we are already in "code" mode
             return;
         }
 
         match self.code_type.as_ref() {
-            "pre" => printer.insert_str("```"),
+            "pre" => printer.insert_str("```\n"),
             "code" | "samp" => printer.insert_str("`"),
             _ => {}
         }

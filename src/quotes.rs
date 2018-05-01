@@ -28,5 +28,6 @@ impl TagHandler for QuoteHandler {
         }
 
         printer.insert_newline();
+        printer.insert_newline();
     }
 }

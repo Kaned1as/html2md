@@ -46,8 +46,7 @@ use tables::TableHandler;
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{2,}").unwrap();      // for Markdown post-processing
-    static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m) +$").unwrap();         // for Markdown post-processing
-    static ref LINE_BREAK_PATTERN : Regex = Regex::new("<br/>").unwrap();               // for Markdown post-processing
+    static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
 }
 
@@ -73,11 +72,10 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFact
     walk(&dom.document, &mut result, custom);
 
     // remove redundant newlines
-    let intermediate1 = TRAILING_SPACE_PATTERN.replace_all(&result.data, "");           // cut trailing spaces
-    let intermediate2 = LINE_BREAK_PATTERN.replace_all(&intermediate1, "  \n");         // make line breaks md-flavored
-    let intermediate3 = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate2, "\n\n");  // > 3 newlines - not handled by markdown anyway
+    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&result.data, "\n\n");  // > 3 newlines - not handled by markdown anyway
+    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");     // trim space if it's just one
 
-    intermediate3.into_owned()
+    intermediate.into_owned()
 }
 
 /// Main function of this library. Parses incoming HTML, converts it into Markdown 
@@ -101,15 +99,20 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
-            let text = escape_markdown(&contents.borrow());
+            let mut text = contents.borrow().to_string();
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
             if inside_pre {
                 // this is preformatted text, insert as-is
                 result.insert_str(&text);
             } else if !(text.trim().len() == 0 && result.data.chars().last() == Some('\n')) {
                 // in case it's not just a whitespace after the newline
-                // regular text, collapse whitespace
+                // regular text, collapse whitespace and newlines in text
+                let inside_code = result.parent_chain.iter().any(|tag| tag == "code");
+                if !inside_code {
+                    text = escape_markdown(&text);
+                }
                 let minified_text = EXCESSIVE_WHITESPACE_PATTERN.replace_all(&text, " ");
+                let minified_text = minified_text.trim_matches(|ch: char| ch == '\n' || ch == '\r');
                 result.insert_str(&minified_text);
             }
         }

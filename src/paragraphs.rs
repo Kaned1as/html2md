@@ -21,7 +21,7 @@ impl TagHandler for ParagraphHandler {
         match self.paragraph_type.as_ref() {
             "p" => { printer.insert_newline(); printer.insert_newline(); }
             "hr" => { printer.insert_newline(); printer.insert_str("---"); printer.insert_newline(); }
-            "br" => printer.insert_str("<br/>"),
+            "br" => printer.insert_str("  \n"),
             _ => {}
         }
     }
