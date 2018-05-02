@@ -88,8 +88,14 @@ fn test_list_formatted() {
 
 #[test]
 fn test_quotes() {
-    let md = parse_html("<p><blockquote>here's a quote\n next line of it</blockquote></p>");
-    assert_eq!(md, "\n\n> here's a quote next line of it\n\n")
+    let md = parse_html("<p><blockquote>here's a quote\n next line of it</blockquote>And some text after it</p>");
+    assert_eq!(md, r#"
+
+> here's a quote next line of it
+
+And some text after it
+
+"#)
 }
 
 #[test]
@@ -99,6 +105,7 @@ fn test_quotes2() {
 
 > here's
 > > nested quote!
+>
 >  a quote next line of it
 
 "#)
