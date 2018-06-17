@@ -15,14 +15,13 @@ Currently supported:
 + Paragraphs
 + Horizontal rulers
 + Images and links
++ Tables
 + Formatting (bold, italic, strikethrough, underline)
 + Code
 
 Limitations
 -------------
 
-- doesn't handle html with whitespaces/indents very well - WIP
-- no tables support yet
 - no markdown flavors support (-/+ unordered list styles, ##/== headers etc.)
 - doesn't yet detect code style
 

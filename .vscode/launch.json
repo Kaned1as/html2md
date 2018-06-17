@@ -9,8 +9,8 @@
             "name": "Debug unit-tests",
             "type": "lldb",
             "request": "launch",
-            "program": "./target/debug/deps/styles-26df81557bfb9d0e",
-            "args": [ "test_styles_with_newlines", "--nocapture" ],
+            "program": "./target/debug/deps/quotes-04794c82e3fb46c0",
+            "args": [ "test_blockquotes", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         },

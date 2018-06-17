@@ -19,13 +19,16 @@ impl TagHandler for QuoteHandler {
         // replace all newlines with newline + > 
         let quote = "> ";
         let mut index = printer.data.len();
-        while index >= self.start_pos {
+        while index > self.start_pos {
             if printer.data.as_bytes().iter().nth(index) == Some(&b'\n') {
                 printer.data.insert_str(index + 1, &quote);
                 printer.position += quote.len();
             }
             index -= 1;
         }
+
+        printer.data.insert_str(self.start_pos + 1, &quote);
+        printer.position += quote.len();
 
         printer.insert_newline();
         printer.insert_newline();
