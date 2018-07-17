@@ -19,7 +19,7 @@ impl CodeHandler {
         }
 
         match self.code_type.as_ref() {
-            "pre" => printer.insert_str("```\n"),
+            "pre" => printer.insert_str("```\n\n"),
             "code" | "samp" => printer.insert_str("`"),
             _ => {}
         }

@@ -45,7 +45,8 @@ use tables::TableHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
-    static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{2,}").unwrap();      // for Markdown post-processing
+    static ref EMPTY_LINE_PATTERN : Regex = Regex::new("(?m)^ +$").unwrap();       // for Markdown post-processing
+    static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
 }
@@ -72,8 +73,9 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFact
     walk(&dom.document, &mut result, custom);
 
     // remove redundant newlines
-    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&result.data, "\n\n");  // > 3 newlines - not handled by markdown anyway
-    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");     // trim space if it's just one
+    let intermediate = EMPTY_LINE_PATTERN.replace_all(&result.data, "");              // empty line with trailing spaces, replace with just newline
+    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
+    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
 
     intermediate.into_owned()
 }
@@ -104,8 +106,9 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
             if inside_pre {
                 // this is preformatted text, insert as-is
                 result.insert_str(&text);
-            } else if !(text.trim().len() == 0 && result.data.chars().last() == Some('\n')) {
-                // in case it's not just a whitespace after the newline
+            } else if !(text.trim().len() == 0 && (result.data.chars().last() == Some('\n') || result.data.chars().last() == Some(' '))) {
+                // in case it's not just a whitespace after the newline or another whitespace
+
                 // regular text, collapse whitespace and newlines in text
                 let inside_code = result.parent_chain.iter().any(|tag| tag == "code");
                 if !inside_code {
@@ -133,7 +136,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
                     // formatting
                     "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
-                    "h1" | "h2" | "h3" | "h4" => Box::new(HeaderHandler::default()),
+                    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(HeaderHandler::default()),
                     "pre" | "code" => Box::new(CodeHandler::default()),
                     // images, links
                     "img" => Box::new(ImgHandler::default()),

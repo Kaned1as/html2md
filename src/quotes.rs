@@ -20,7 +20,7 @@ impl TagHandler for QuoteHandler {
         let quote = "> ";
         let mut index = printer.data.len();
         while index > self.start_pos {
-            if printer.data.as_bytes().iter().nth(index) == Some(&b'\n') {
+            if printer.data.bytes().nth(index) == Some(b'\n') {
                 printer.data.insert_str(index + 1, &quote);
                 printer.position += quote.len();
             }
