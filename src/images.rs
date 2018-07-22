@@ -12,7 +12,7 @@ impl TagHandler for ImgHandler {
     
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
         // try to extract attrs
-        let url = get_tag_attr(tag, "src");
+        let src = get_tag_attr(tag, "src");
         let alt = get_tag_attr(tag, "alt");
         let title = get_tag_attr(tag, "title");
         let height = get_tag_attr(tag, "height");
@@ -22,9 +22,9 @@ impl TagHandler for ImgHandler {
         if height.is_some() || width.is_some() || align.is_some() {
             // need to handle it as inline html to preserve attributes we support
             printer.data.insert_str(printer.position, 
-                &format!("<img {} />)", 
-                    alt.map(|value| format!("alt='{}'", value)).unwrap_or_default() +
-                    &url.map(|value| format!(" url='{}'", value)).unwrap_or_default() +
+                &format!("<img{} />",
+                    alt.map(|value| format!(" alt='{}'", value)).unwrap_or_default() +
+                    &src.map(|value| format!(" src='{}'", value)).unwrap_or_default() +
                     &title.map(|value| format!(" title='{}'", value)).unwrap_or_default() +
                     &height.map(|value| format!(" height='{}'", value)).unwrap_or_default() +
                     &width.map(|value| format!(" width='{}'", value)).unwrap_or_default() +
@@ -34,7 +34,7 @@ impl TagHandler for ImgHandler {
             printer.data.insert_str(printer.position, 
                 &format!("![{}]({}{})", 
                     alt.unwrap_or_default(), 
-                    url.unwrap_or_default(),
+                    src.unwrap_or_default(),
                     title.map(|value| format!(" \"{}\"", value)).unwrap_or_default()));
         }
     }
