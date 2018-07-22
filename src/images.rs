@@ -23,12 +23,12 @@ impl TagHandler for ImgHandler {
             // need to handle it as inline html to preserve attributes we support
             printer.data.insert_str(printer.position, 
                 &format!("<img{} />",
-                    alt.map(|value| format!(" alt='{}'", value)).unwrap_or_default() +
-                    &src.map(|value| format!(" src='{}'", value)).unwrap_or_default() +
-                    &title.map(|value| format!(" title='{}'", value)).unwrap_or_default() +
-                    &height.map(|value| format!(" height='{}'", value)).unwrap_or_default() +
-                    &width.map(|value| format!(" width='{}'", value)).unwrap_or_default() +
-                    &align.map(|value| format!(" align='{}'", value)).unwrap_or_default()));
+                    alt.map(|value| format!(" alt=\"{}\"", value)).unwrap_or_default() +
+                    &src.map(|value| format!(" src=\"{}\"", value)).unwrap_or_default() +
+                    &title.map(|value| format!(" title=\"{}\"", value)).unwrap_or_default() +
+                    &height.map(|value| format!(" height=\"{}\"", value)).unwrap_or_default() +
+                    &width.map(|value| format!(" width=\"{}\"", value)).unwrap_or_default() +
+                    &align.map(|value| format!(" align=\"{}\"", value)).unwrap_or_default()));
         } else {
             // don't have any geometry-controlling attrs, post markdown natively
             printer.data.insert_str(printer.position, 
