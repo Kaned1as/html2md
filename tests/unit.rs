@@ -42,5 +42,5 @@ fn test_image() {
 #[test]
 fn test_headers() {
     let md = parse_html(r#"<h1 id="marc-fs">MARC-FS</h1><p><a href="http://Mail.ru">Mail.ru</a> Cloud filesystem written for FUSE</p><h2 id="synopsis">Synopsis</h2>"#);
-    assert_eq!(md, "\nMARC-FS\n==========\n[Mail.ru](http://Mail.ru) Cloud filesystem written for FUSE\n\nSynopsis\n----------\n")
+    assert_eq!(md, "\n\nMARC-FS\n==========\n\n[Mail.ru](http://Mail.ru) Cloud filesystem written for FUSE\n\nSynopsis\n----------\n\n")
 }

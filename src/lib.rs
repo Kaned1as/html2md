@@ -29,6 +29,7 @@ mod styles;
 mod codes;
 mod quotes;
 mod tables;
+mod containers;
 
 use dummy::DummyHandler;
 use dummy::IdentityHandler;
@@ -42,12 +43,14 @@ use styles::StyleHandler;
 use codes::CodeHandler;
 use quotes::QuoteHandler;
 use tables::TableHandler;
+use containers::ContainerHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
-    static ref EMPTY_LINE_PATTERN : Regex = Regex::new("(?m)^ +$").unwrap();       // for Markdown post-processing
+    static ref EMPTY_LINE_PATTERN : Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
+    static ref LEADING_NEWLINES_PATTERN : Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
     static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
 }
 
@@ -76,6 +79,7 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFact
     let intermediate = EMPTY_LINE_PATTERN.replace_all(&result.data, "");              // empty line with trailing spaces, replace with just newline
     let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
     let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
+    //let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
 
     intermediate.into_owned()
 }
@@ -131,6 +135,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
             } else {
                 // no user-supplied factory, take one of built-in ones
                 handler = match tag_name.as_ref() {
+                    // containers
+                    "div" | "section" | "header" | "footer" => Box::new(ContainerHandler::default()),
                     // pagination, breaks
                     "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
                     "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
@@ -241,7 +247,8 @@ pub trait TagHandlerFactory {
 
 /// Trait interface describing abstract handler of arbitrary HTML tag.
 pub trait TagHandler {
-    /// Handle tag encountered when walking HTML tree
+    /// Handle tag encountered when walking HTML tree.
+    /// This is executed before the children processing
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter);
 
     /// Executed after all children of this tag have been processed

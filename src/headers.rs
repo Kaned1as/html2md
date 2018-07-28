@@ -16,7 +16,8 @@ impl TagHandler for HeaderHandler {
             _ => String::new()
         };
 
-        printer.insert_newline(); 
+        printer.insert_newline();
+        printer.insert_newline();
         match self.header_type.as_ref() {
             "h3" => printer.insert_str("### "),
             "h4" => printer.insert_str("#### "),
@@ -36,5 +37,6 @@ impl TagHandler for HeaderHandler {
             "h6" => printer.insert_str(" ######\n"),
             _ => {}
         }
+        printer.insert_newline();
     }
 }
