@@ -11,7 +11,7 @@ pub(super) struct CodeHandler {
 impl CodeHandler {
 
     /// Used in both starting and finishing handling
-    fn do_handle(&mut self, printer: &mut StructuredPrinter) {
+    fn do_handle(&mut self, printer: &mut StructuredPrinter, start: bool) {
         let immediate_parent = printer.parent_chain.last().unwrap().to_owned();
         if self.code_type == "code" && immediate_parent == "pre" {
             // we are already in "code" mode
@@ -19,7 +19,16 @@ impl CodeHandler {
         }
 
         match self.code_type.as_ref() {
-            "pre" => printer.insert_str("```\n\n"),
+            "pre" => {
+                // code block should have its own paragraph
+                if start {
+                    printer.insert_newline();
+                }
+                printer.insert_str("\n```\n");
+                if !start {
+                    printer.insert_newline();
+                }
+            },
             "code" | "samp" => printer.insert_str("`"),
             _ => {}
         }
@@ -34,9 +43,9 @@ impl TagHandler for CodeHandler {
             _ => String::new()
         };
 
-        self.do_handle(printer);
+        self.do_handle(printer, true);
     }
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        self.do_handle(printer);
+        self.do_handle(printer, false);
     }
 }
