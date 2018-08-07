@@ -1,6 +1,6 @@
 [package]
 name = "html2md"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["Oleg `Kanedias` Chernovskiy <kanedias@xaker.ru>"]
 
 description = "Library and binary to convert simple html documents into markdown"
