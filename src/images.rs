@@ -3,6 +3,8 @@ use super::StructuredPrinter;
 
 use html5ever::rcdom::{Handle,NodeData};
 
+use percent_encoding::{utf8_percent_encode, DEFAULT_ENCODE_SET};
+
 /// Handler for `<img>` tag. Depending on circumstances can produce both
 /// inline HTML-formatted image and Markdown native one
 #[derive(Default)]
@@ -30,11 +32,12 @@ impl TagHandler for ImgHandler {
                     &width.map(|value| format!(" width=\"{}\"", value)).unwrap_or_default() +
                     &align.map(|value| format!(" align=\"{}\"", value)).unwrap_or_default()));
         } else {
+            // need to escape URL if it contains spaces
             // don't have any geometry-controlling attrs, post markdown natively
             printer.data.insert_str(printer.position, 
                 &format!("![{}]({}{})", 
                     alt.unwrap_or_default(), 
-                    src.unwrap_or_default(),
+                    utf8_percent_encode(&src.unwrap_or_default(), DEFAULT_ENCODE_SET),
                     title.map(|value| format!(" \"{}\"", value)).unwrap_or_default()));
         }
     }

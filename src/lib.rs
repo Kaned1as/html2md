@@ -4,6 +4,7 @@
 extern crate lazy_static;
 extern crate html5ever;
 extern crate regex;
+extern crate percent_encoding;
 
 use std::boxed::Box;
 use std::borrow::Borrow;

@@ -32,3 +32,9 @@ fn test_image_src_issue() {
     let md = parse_html("<img src=\"https://dybr.ru/img/43/1532265494_android-Kanedias\" width=\"auto\" height=\"500\" >");
     assert_eq!(md, "<img src=\"https://dybr.ru/img/43/1532265494_android-Kanedias\" height=\"500\" width=\"auto\" />")
 }
+
+#[test]
+fn test_image_with_space_issue() {
+    let md = parse_html("<img src=\"https://i.redd.it/l0ne 52x7f h611.png\" alt=\"image of usual kill -9 sequence\" />");
+    assert_eq!(md, "![image of usual kill -9 sequence](https://i.redd.it/l0ne%2052x7f%20h611.png)")
+}
