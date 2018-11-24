@@ -11,11 +11,13 @@ impl TagHandler for ListHandler {
 
     /// we're entering "ul" or "ol" tag, no "li" handling here
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
-        printer.insert_newline(); 
+        printer.insert_newline();
     }
 
     /// indent now-ready list
-    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+        printer.insert_newline();
+        printer.insert_newline();
     }
 }
 

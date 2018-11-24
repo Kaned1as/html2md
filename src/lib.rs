@@ -31,6 +31,8 @@ mod codes;
 mod quotes;
 mod tables;
 mod containers;
+mod iframes;
+mod common;
 
 use dummy::DummyHandler;
 use dummy::IdentityHandler;
@@ -45,6 +47,7 @@ use codes::CodeHandler;
 use quotes::QuoteHandler;
 use tables::TableHandler;
 use containers::ContainerHandler;
+use iframes::IframeHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
@@ -52,7 +55,7 @@ lazy_static! {
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref LEADING_NEWLINES_PATTERN : Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
-    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-*] ").unwrap();   // for Markdown escaping
+    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-+*] ").unwrap();   // for Markdown escaping
 }
 
 /// FFI variant for HTML -> Markdown conversion for calling from other languages
@@ -156,6 +159,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     // tables, handled fully internally as markdown can't have nested content in tables
                     // supports only single tables as of now
                     "table" => Box::new(TableHandler::default()),
+                    "iframe" => Box::new(IframeHandler::default()),
                     // other
                     "html" | "head" | "body" => Box::new(DummyHandler::default()),
                     _ => Box::new(DummyHandler::default())

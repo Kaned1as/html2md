@@ -25,3 +25,12 @@ fn test_cheatsheet() {
     println!("{}", md_parsed);
     //assert_eq!(md, md_parsed);
 }
+
+#[test]
+fn test_dybr() {
+    let mut html = String::new();
+    let mut html_file = File::open("test-samples/dybr-test2.html").unwrap();
+    html_file.read_to_string(&mut html).expect("File must be readable");
+    let result = parse_html(&html);
+    println!("{}", result);
+}

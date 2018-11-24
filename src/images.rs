@@ -1,7 +1,9 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::{Handle,NodeData};
+use common::get_tag_attr;
+
+use html5ever::rcdom::Handle;
 
 use percent_encoding::{utf8_percent_encode, DEFAULT_ENCODE_SET};
 
@@ -45,16 +47,5 @@ impl TagHandler for ImgHandler {
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         // images can't have inner tags, it's ok
         printer.position = printer.data.len();
-    }
-}
-
-fn get_tag_attr(tag: &Handle, attr_name: &str) -> Option<String> {
-    match tag.data {
-        NodeData::Element { ref attrs, .. } => {
-            let attrs = attrs.borrow();
-            let requested_attr = attrs.iter().find(|attr| attr.name.local.to_string() == attr_name);
-            return requested_attr.map(|attr| attr.value.to_string());
-        }
-        _ => return None
     }
 }
