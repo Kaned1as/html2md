@@ -44,7 +44,7 @@ impl TagHandler for ListItemHandler {
             self.list_type = nearest_parent_list.unwrap().to_string();
         }
 
-        if printer.data.trim_matches(' ').chars().last() != Some('\n') {
+        if printer.data.chars().last() != Some('\n') {
             // insert newline when declaring a list item only in case there isn't any newline at the end of text
             printer.insert_newline(); 
         }

@@ -32,6 +32,7 @@ fn test_list_formatted() {
             <li>Ain't no use joking</li>
             <li>EVERYTHING IS BROKEN
     "#);
+    println!("{}", &md);
     assert_eq!(md, r#"
 
 * You should NEVER see this error
@@ -43,6 +44,111 @@ fn test_list_formatted() {
 * Ain't no use jiving
 * Ain't no use joking
 * EVERYTHING IS BROKEN
+
+"#)
+}
+
+#[test]
+fn test_list_stackedit() {
+    let md = parse_html(r#"
+    <ul>
+        <li>
+            <p>You should NEVER see this error</p>
+            <ul>
+                <li>
+                <p>Broken lines, broken strings</p>
+                </li>
+                <li>
+                <p>Broken threads, broken springs</p>
+                </li>
+                <li>
+                <p>Broken idols, broken heads</p>
+                </li>
+                <li>
+                <p>People sleep in broken beds</p>
+                </li>
+            </ul>
+            </li>
+            <li>
+            <p>Ain’t no use jiving</p>
+            </li>
+            <li>
+            <p>Ain’t no use joking</p>
+            </li>
+            <li>
+            <p>EVERYTHING IS BROKEN</p>
+            </li>
+    </ul>"#);
+    assert_eq!(md, r#"
+* You should NEVER see this error
+
+  * Broken lines, broken strings
+
+  * Broken threads, broken springs
+
+  * Broken idols, broken heads
+
+  * People sleep in broken beds
+
+* Ain’t no use jiving
+
+* Ain’t no use joking
+
+* EVERYTHING IS BROKEN
+
+"#)
+}
+
+#[test]
+fn test_list_stackedit_add_brs() {
+    let md = parse_html(r#"
+    <ul>
+        <li>
+            <p>You should NEVER see this error</p>
+            <ul>
+                <li>
+                <p>Broken lines, broken strings</p>
+                </li>
+                <li>
+                <p>Broken threads, broken springs</p>
+                </li>
+                <li>
+                <p>Broken idols, broken heads</p>
+                </li>
+                <li>
+                <p>People sleep in broken beds</p>
+                <br/>
+                <br/>
+                </li>
+            </ul>
+            </li>
+            <li>
+            <p>Ain’t no use jiving</p>
+            </li>
+            <li>
+            <p>Ain’t no use joking</p>
+            </li>
+            <li>
+            <p>EVERYTHING IS BROKEN</p>
+            </li>
+    </ul>"#);
+    assert_eq!(md, r#"
+* You should NEVER see this error
+
+  * Broken lines, broken strings
+
+  * Broken threads, broken springs
+
+  * Broken idols, broken heads
+
+  * People sleep in broken beds
+
+* Ain’t no use jiving
+
+* Ain’t no use joking
+
+* EVERYTHING IS BROKEN
+
 "#)
 }
 
@@ -120,5 +226,6 @@ fn test_list_ordered() {
 2. They say the danger's gone away
 3. Well I can see the fire still alight
 4. Burning into the night
+
 "#)
 }

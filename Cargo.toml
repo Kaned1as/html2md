@@ -19,10 +19,13 @@ name = "html2md"
 crate-type = ["rlib", "dylib", "staticlib"]
 
 [dependencies]
-lazy_static = "1.0.0"
+lazy_static = "1.2.0"
 html5ever = "0.22"
-regex = "1.0.2"
+regex = "1.0.6"
 percent-encoding = "1.0.1"
+
+[dev-dependencies]
+spectral = "0.6.0"
 
 [profile.release]
 lto = true

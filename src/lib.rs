@@ -1,5 +1,3 @@
-//#![feature(alloc_system)]
-
 #[macro_use]
 extern crate lazy_static;
 extern crate html5ever;
@@ -55,7 +53,7 @@ lazy_static! {
     static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref LEADING_NEWLINES_PATTERN : Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
-    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^[-+*] ").unwrap();   // for Markdown escaping
+    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^(\\s*)([-+*])(\\s+)").unwrap();   // for Markdown escaping
 }
 
 /// FFI variant for HTML -> Markdown conversion for calling from other languages
@@ -204,7 +202,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 
 fn escape_markdown(text: &str) -> String {
     let data = text.to_string();
-    let data = BEGINNING_OF_LIST_PATTERN.replace(&data, "\\$0");
+    let data = BEGINNING_OF_LIST_PATTERN.replace(&data, "$1\\$2\\$3");
     let data = data.replace("*", "\\*");
     let data = data.replace("_", "\\_");
 

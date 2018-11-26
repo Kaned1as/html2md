@@ -9,8 +9,8 @@
             "name": "Debug unit-tests",
             "type": "lldb",
             "request": "launch",
-            "program": "./target/debug/deps/lists-9db8707043727498",
-            "args": [ "test_list_multiline", "--nocapture" ],
+            "program": "./target/debug/deps/unit-c322eb3e597450f1",
+            "args": [ "test_escaping", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         },
@@ -18,8 +18,8 @@
             "name": "Debug integration-tests",
             "type": "lldb",
             "request": "launch",
-            "program": "./target/debug/deps/integration-06bc0f5185252988",
-            "args": [ "test_cheatsheet", "--nocapture" ],
+            "program": "./target/debug/deps/integration-2be29df99b0a42dd",
+            "args": [ "test_lists_from_text", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         }
