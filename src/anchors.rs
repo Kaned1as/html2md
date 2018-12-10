@@ -4,13 +4,18 @@ use super::StructuredPrinter;
 use html5ever::rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct AnchorHandler;
+pub(super) struct AnchorHandler {
+    start_pos: usize,
+    url: String
+}
 
 impl TagHandler for AnchorHandler {
     
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+        self.start_pos = printer.position;
+
         // try to extract a hyperlink
-        let url = match tag.data {
+        self.url = match tag.data {
              NodeData::Element { ref attrs, .. } => {
                 let attrs = attrs.borrow();
                 let href = attrs.iter().find(|attr| attr.name.local.to_string() == "href");
@@ -21,15 +26,13 @@ impl TagHandler for AnchorHandler {
              }
              _ => String::new()
         };
-
-        // at this point we know it's anchor tag
-        printer.data.insert_str(printer.position, format!("[]({})", url).as_ref());
-
-        // inserted a link, now we have to update position to move it one point forward, after "[" sign
-        printer.position += 1
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+        // add braces around already present text, put an url afterwards
+        printer.position = self.start_pos;
+        printer.insert_str("[");
         printer.position = printer.data.len();
+        printer.insert_str(&format!("]({})", self.url))
     }
 }

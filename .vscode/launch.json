@@ -19,7 +19,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "./target/debug/deps/integration-2be29df99b0a42dd",
-            "args": [ "test_lists_from_text", "--nocapture" ],
+            "args": [ "test_strong_inside_link", "--nocapture" ],
             "cwd": "${workspaceRoot}",
             "sourceLanguages": ["rust"]
         }

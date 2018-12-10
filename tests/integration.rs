@@ -53,3 +53,14 @@ fn test_lists_from_text() {
     let result = parse_html(&html);
     println!("{}", result);
 }
+
+#[test]
+fn test_strong_inside_link() {
+    
+
+    let mut html = String::new();
+    let mut html_file = File::open("test-samples/dybr-bug-with-strong-inside-link.html").unwrap();
+    html_file.read_to_string(&mut html).expect("File must be readable");
+    let result = parse_html(&html);
+    assert_that(&result).contains("[**Just God**](http://fanfics.me/ficXXXXXXX)");
+}
