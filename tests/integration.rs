@@ -51,7 +51,9 @@ fn test_lists_from_text() {
     let mut html_file = File::open("test-samples/dybr-bug-with-lists-from-text.html").unwrap();
     html_file.read_to_string(&mut html).expect("File must be readable");
     let result = parse_html(&html);
-    println!("{}", result);
+    assert_that(&result).contains("\\- x xxxx xxxxx xx xxxxxxxxxx");
+    assert_that(&result).contains("\\- x xxxx xxxxxxxx xxxxxxxxx xxxxxx xxx x xxxxxxxx xxxx");
+    assert_that(&result).contains("\\- xxxx xxxxxxxx");
 }
 
 #[test]
