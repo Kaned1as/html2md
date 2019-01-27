@@ -1,7 +1,9 @@
+use lazy_static::lazy_static;
+
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use common::get_tag_attr;
+use crate::common::get_tag_attr;
 
 use regex::Regex;
 use html5ever::rcdom::Handle;

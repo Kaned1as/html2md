@@ -1,8 +1,4 @@
-#[macro_use]
-extern crate lazy_static;
-extern crate html5ever;
-extern crate regex;
-extern crate percent_encoding;
+use lazy_static::lazy_static;
 
 use std::boxed::Box;
 use std::borrow::Borrow;
@@ -13,8 +9,8 @@ use std::ffi::{CString, CStr};
 
 use regex::Regex;
 
+pub use html5ever::rcdom::{RcDom, Handle, NodeData};
 use html5ever::parse_document;
-use html5ever::rcdom::{RcDom, Handle, NodeData};
 use html5ever::driver::ParseOpts;
 use html5ever::tendril::TendrilSink;
 
@@ -32,20 +28,20 @@ mod containers;
 mod iframes;
 mod common;
 
-use dummy::DummyHandler;
-use dummy::IdentityHandler;
-use paragraphs::ParagraphHandler;
-use anchors::AnchorHandler;
-use images::ImgHandler;
-use headers::HeaderHandler;
-use lists::ListItemHandler;
-use lists::ListHandler;
-use styles::StyleHandler;
-use codes::CodeHandler;
-use quotes::QuoteHandler;
-use tables::TableHandler;
-use containers::ContainerHandler;
-use iframes::IframeHandler;
+use crate::dummy::DummyHandler;
+use crate::dummy::IdentityHandler;
+use crate::paragraphs::ParagraphHandler;
+use crate::anchors::AnchorHandler;
+use crate::images::ImgHandler;
+use crate::headers::HeaderHandler;
+use crate::lists::ListItemHandler;
+use crate::lists::ListHandler;
+use crate::styles::StyleHandler;
+use crate::codes::CodeHandler;
+use crate::quotes::QuoteHandler;
+use crate::tables::TableHandler;
+use crate::containers::ContainerHandler;
+use crate::iframes::IframeHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup

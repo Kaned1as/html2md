@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use common::get_tag_attr;
+use crate::common::get_tag_attr;
 
 use html5ever::rcdom::Handle;
 
