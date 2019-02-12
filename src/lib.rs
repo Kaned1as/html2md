@@ -196,8 +196,13 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
     handler.after_handle(result);
 }
 
+/// This conversion should only be applied to text tags
+/// 
+/// Escapes text inside HTML tags so it won't be recognized as Markdown control sequence
+/// like list start or bold text style
 fn escape_markdown(text: &str) -> String {
     let data = text.to_string();
+    let data = data.replace("\\", "\\\\");
     let data = BEGINNING_OF_LIST_PATTERN.replace(&data, "$1\\$2$3");
     let data = data.replace("*", "\\*");
     let data = data.replace("_", "\\_");
@@ -214,27 +219,27 @@ fn escape_markdown(text: &str) -> String {
 #[derive(Debug, Default)]
 pub struct StructuredPrinter {
     /// Chain of parents leading to upmost <html> tag
-    parent_chain: Vec<String>,
+    pub parent_chain: Vec<String>,
 
     /// Siblings of currently processed tag in order where they're appearing in html
-    siblings: HashMap<usize, Vec<String>>,
+    pub siblings: HashMap<usize, Vec<String>>,
 
     /// resulting markdown document
-    data: String,
+    pub data: String,
 
     /// Position in [data] for tracking non-appending cases
-    position: usize
+    pub position: usize
 }
 
 impl StructuredPrinter {
 
     /// Inserts newline
-    fn insert_newline(&mut self) {
+    pub fn insert_newline(&mut self) {
         self.insert_str("\n");
     }
 
     /// Insert string at current position of printer, adjust position to the end of inserted string
-    fn insert_str(&mut self, it: &str) {
+    pub fn insert_str(&mut self, it: &str) {
         self.data.insert_str(self.position, it);
         self.position += it.len();
     }
