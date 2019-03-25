@@ -50,12 +50,12 @@ impl TagHandler for ListItemHandler {
         let current_depth = printer.parent_chain.len();
         let order = printer.siblings[&current_depth].len() + 1;
         match self.list_type.as_ref() {
-            "ul" | "menu" => printer.insert_str("* "), // unordered list: *, *, *
-            "ol" => printer.insert_str(&(order.to_string() + ". ")), // ordered list: 1, 2, 3
+            "ul" | "menu" => printer.append_str("* "), // unordered list: *, *, *
+            "ol" => printer.append_str(&(order.to_string() + ". ")), // ordered list: 1, 2, 3
             _ => {} // never happens
         }
 
-        self.start_pos = printer.position;
+        self.start_pos = printer.data.len();
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
@@ -71,9 +71,6 @@ impl TagHandler for ListItemHandler {
         while index < printer.data.len() {
             if printer.data.bytes().nth(index) == Some(b'\n') || printer.data.bytes().nth(index) == Some(b' ') {
                 printer.data.remove(index);
-                if printer.position >= index {
-                    printer.position -= 1;
-                }
             } else {
                 break;
             }
@@ -84,8 +81,7 @@ impl TagHandler for ListItemHandler {
         let mut index = printer.data.len();
         while index > self.start_pos {
             if printer.data.bytes().nth(index) == Some(b'\n') {
-                printer.data.insert_str(index + 1, &" ".repeat(padding));
-                printer.position += padding;
+                printer.insert_str(index + 1, &" ".repeat(padding));
             }
             index -= 1;
         }

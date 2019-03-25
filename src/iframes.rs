@@ -38,7 +38,7 @@ impl TagHandler for IframeHandler {
 
         if let Some(capture) = YOUTUBE_PATTERN.captures(&src.unwrap()) {
             let media_id = capture.get(1).unwrap();
-            printer.insert_str(&format!("[![Embedded video](https://img.youtube.com/vi/{mid}/0.jpg)](https://www.youtube.com/watch?v={mid})", mid = media_id.as_str()));
+            printer.append_str(&format!("[![Embedded video](https://img.youtube.com/vi/{mid}/0.jpg)](https://www.youtube.com/watch?v={mid})", mid = media_id.as_str()));
         }
     }
 

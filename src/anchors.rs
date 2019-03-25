@@ -12,7 +12,7 @@ pub(super) struct AnchorHandler {
 impl TagHandler for AnchorHandler {
     
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
-        self.start_pos = printer.position;
+        self.start_pos = printer.data.len();
 
         // try to extract a hyperlink
         self.url = match tag.data {
@@ -30,9 +30,7 @@ impl TagHandler for AnchorHandler {
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         // add braces around already present text, put an url afterwards
-        printer.position = self.start_pos;
-        printer.insert_str("[");
-        printer.position = printer.data.len();
-        printer.insert_str(&format!("]({})", self.url))
+        printer.insert_str(self.start_pos, "[");
+        printer.append_str(&format!("]({})", self.url))
     }
 }

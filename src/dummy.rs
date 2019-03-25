@@ -41,7 +41,7 @@ impl TagHandler for IdentityHandler {
             return;
         }
 
-        printer.insert_str(&conv.unwrap());
+        printer.append_str(&conv.unwrap());
     }
 
     fn skip_descendants(&self) -> bool {

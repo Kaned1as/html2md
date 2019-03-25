@@ -44,12 +44,12 @@ use crate::containers::ContainerHandler;
 use crate::iframes::IframeHandler;
 
 lazy_static! {
-    static ref EXCESSIVE_WHITESPACE_PATTERN : Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
-    static ref EMPTY_LINE_PATTERN : Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
-    static ref EXCESSIVE_NEWLINE_PATTERN : Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
-    static ref TRAILING_SPACE_PATTERN : Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
-    static ref LEADING_NEWLINES_PATTERN : Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
-    static ref BEGINNING_OF_LIST_PATTERN : Regex = Regex::new("(?m)^(\\s*)([-+*])(\\s+)").unwrap();   // for Markdown escaping
+    static ref EXCESSIVE_WHITESPACE_PATTERN: Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
+    static ref EMPTY_LINE_PATTERN: Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
+    static ref EXCESSIVE_NEWLINE_PATTERN: Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
+    static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
+    static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
+    static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[\\_\-~+>*]").unwrap();           // for Markdown escaping
 }
 
 /// FFI variant for HTML -> Markdown conversion for calling from other languages
@@ -107,7 +107,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
             if inside_pre {
                 // this is preformatted text, insert as-is
-                result.insert_str(&text);
+                result.append_str(&text);
             } else if !(text.trim().len() == 0 && (result.data.chars().last() == Some('\n') || result.data.chars().last() == Some(' '))) {
                 // in case it's not just a whitespace after the newline or another whitespace
 
@@ -118,7 +118,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                 }
                 let minified_text = EXCESSIVE_WHITESPACE_PATTERN.replace_all(&text, " ");
                 let minified_text = minified_text.trim_matches(|ch: char| ch == '\n' || ch == '\r');
-                result.insert_str(&minified_text);
+                result.append_str(&minified_text);
             }
         }
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
@@ -201,16 +201,11 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 /// Escapes text inside HTML tags so it won't be recognized as Markdown control sequence
 /// like list start or bold text style
 fn escape_markdown(text: &str) -> String {
-    let data = text.to_string();
-    let data = data.replace("\\", "\\\\");
-    let data = data.replace("-", "\\-");
-    let data = data.replace("*", "\\*");
-    let data = data.replace("+", "\\+");
-    let data = data.replace("_", "\\_");
+    let data = MARKDOWN_KEYCHARS.replace_all(&text, "\\$0");
 
     // no handling of more complicated cases such as
     // ![] or []() ones, for now this will suffice
-    return data;
+    return data.into_owned();
 }
 
 /// Intermediate result of HTML -> Markdown conversion.
@@ -227,22 +222,23 @@ pub struct StructuredPrinter {
 
     /// resulting markdown document
     pub data: String,
-
-    /// Position in [data] for tracking non-appending cases
-    pub position: usize
 }
 
 impl StructuredPrinter {
 
     /// Inserts newline
     pub fn insert_newline(&mut self) {
-        self.insert_str("\n");
+        self.append_str("\n");
     }
 
-    /// Insert string at current position of printer, adjust position to the end of inserted string
-    pub fn insert_str(&mut self, it: &str) {
-        self.data.insert_str(self.position, it);
-        self.position += it.len();
+    /// Append string to the end of the printer
+    pub fn append_str(&mut self, it: &str) {
+        self.data.push_str(it);
+    }
+
+    /// Insert string at specified position of printer, adjust position to the end of inserted string
+    pub fn insert_str(&mut self, pos: usize, it: &str) {
+        self.data.insert_str(pos, it);
     }
 }
 

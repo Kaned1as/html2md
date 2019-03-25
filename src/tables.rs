@@ -114,7 +114,7 @@ impl TagHandler for TableHandler {
 
         printer.insert_newline();
         printer.insert_newline();
-        printer.insert_str(&table_markup);
+        printer.append_str(&table_markup);
     }
 
     fn after_handle(&mut self, _printer: &mut StructuredPrinter) {

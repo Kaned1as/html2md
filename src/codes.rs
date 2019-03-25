@@ -24,12 +24,12 @@ impl CodeHandler {
                 if start {
                     printer.insert_newline();
                 }
-                printer.insert_str("\n```\n");
+                printer.append_str("\n```\n");
                 if !start {
                     printer.insert_newline();
                 }
             },
-            "code" | "samp" => printer.insert_str("`"),
+            "code" | "samp" => printer.append_str("`"),
             _ => {}
         }
     }

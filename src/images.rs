@@ -25,7 +25,7 @@ impl TagHandler for ImgHandler {
         
         if height.is_some() || width.is_some() || align.is_some() {
             // need to handle it as inline html to preserve attributes we support
-            printer.data.insert_str(printer.position, 
+            printer.append_str(
                 &format!("<img{} />",
                     alt.map(|value| format!(" alt=\"{}\"", value)).unwrap_or_default() +
                     &src.map(|value| format!(" src=\"{}\"", value)).unwrap_or_default() +
@@ -36,7 +36,7 @@ impl TagHandler for ImgHandler {
         } else {
             // need to escape URL if it contains spaces
             // don't have any geometry-controlling attrs, post markdown natively
-            printer.data.insert_str(printer.position, 
+            printer.append_str(
                 &format!("![{}]({}{})", 
                     alt.unwrap_or_default(), 
                     utf8_percent_encode(&src.unwrap_or_default(), DEFAULT_ENCODE_SET),
@@ -44,8 +44,6 @@ impl TagHandler for ImgHandler {
         }
     }
 
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        // images can't have inner tags, it's ok
-        printer.position = printer.data.len();
+    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
     }
 }

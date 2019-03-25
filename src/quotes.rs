@@ -11,7 +11,7 @@ pub(super) struct QuoteHandler {
 impl TagHandler for QuoteHandler {
     
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
-        self.start_pos = printer.position;
+        self.start_pos = printer.data.len();
         printer.insert_newline();
     }
 
@@ -21,14 +21,12 @@ impl TagHandler for QuoteHandler {
         let mut index = printer.data.len();
         while index > self.start_pos {
             if printer.data.bytes().nth(index) == Some(b'\n') {
-                printer.data.insert_str(index + 1, &quote);
-                printer.position += quote.len();
+                printer.insert_str(index + 1, &quote);
             }
             index -= 1;
         }
 
-        printer.data.insert_str(self.start_pos + 1, &quote);
-        printer.position += quote.len();
+        printer.insert_str(self.start_pos + 1, &quote);
 
         printer.insert_newline();
         printer.insert_newline();

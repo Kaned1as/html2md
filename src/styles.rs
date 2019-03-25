@@ -13,13 +13,12 @@ pub(super) struct StyleHandler {
 fn apply_at_bounds(printer: &mut StructuredPrinter, start: usize, end: usize, mark: &str) {
     printer.data.insert_str(end, mark);
     printer.data.insert_str(start, mark);
-    printer.position += mark.len() * 2;
 }
 
 impl TagHandler for StyleHandler {
     
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
-        self.start_pos = printer.position;
+        self.start_pos = printer.data.len();
         self.style_type = match tag.data {
             NodeData::Element { ref name, .. } => name.local.to_string(),
             _ => String::new()
