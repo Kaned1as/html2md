@@ -203,8 +203,9 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 fn escape_markdown(text: &str) -> String {
     let data = text.to_string();
     let data = data.replace("\\", "\\\\");
-    let data = BEGINNING_OF_LIST_PATTERN.replace(&data, "$1\\$2$3");
+    let data = data.replace("-", "\\-");
     let data = data.replace("*", "\\*");
+    let data = data.replace("+", "\\+");
     let data = data.replace("_", "\\_");
 
     // no handling of more complicated cases such as

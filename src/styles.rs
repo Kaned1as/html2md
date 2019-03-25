@@ -34,7 +34,7 @@ impl TagHandler for StyleHandler {
         }
 
         let first_non_space_pos = self.start_pos + non_space_offset.unwrap();
-        let last_non_space_pos = printer.data.trim_right_matches(|ch: char| ch.is_whitespace()).len();
+        let last_non_space_pos = printer.data.trim_end_matches(|ch: char| ch.is_whitespace()).len();
         
         // finishing markup
         match self.style_type.as_ref() {

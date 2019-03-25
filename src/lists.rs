@@ -30,8 +30,6 @@ pub struct ListItemHandler {
 impl TagHandler for ListItemHandler {
 
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
-        self.start_pos = printer.position;
-
         {
             let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
             let nearest_parent_list = parent_lists.first();
@@ -56,6 +54,8 @@ impl TagHandler for ListItemHandler {
             "ol" => printer.insert_str(&(order.to_string() + ". ")), // ordered list: 1, 2, 3
             _ => {} // never happens
         }
+
+        self.start_pos = printer.position;
     }
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
@@ -64,6 +64,20 @@ impl TagHandler for ListItemHandler {
             "ol" => 3,
             _ => 4
         };
+
+        // need to cleanup leading newlines, <p> inside <li> should produce valid 
+        // list element, not an empty line
+        let index = self.start_pos;
+        while index < printer.data.len() {
+            if printer.data.bytes().nth(index) == Some(b'\n') || printer.data.bytes().nth(index) == Some(b' ') {
+                printer.data.remove(index);
+                if printer.position >= index {
+                    printer.position -= 1;
+                }
+            } else {
+                break;
+            }
+        }
 
         // non-nested indentation (padding). Markdown requires that all paragraphs in the
         // list item except first should be indented with at least 1 space

@@ -113,6 +113,7 @@ impl TagHandler for TableHandler {
         }
 
         printer.insert_newline();
+        printer.insert_newline();
         printer.insert_str(&table_markup);
     }
 

@@ -24,6 +24,7 @@ fn test_tables() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |Minor1|Minor2|Minor3|Minor4|
 |------|------|------|------|
 | col1 | col2 | col3 | col4 |
@@ -54,6 +55,7 @@ fn test_tables_invalid_more_headers() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |Minor1|Minor2|Minor3|Minor4|Minor5|Minor6|
 |------|------|------|------|------|------|
 | col1 | col2 | col3 | col4 |      |      |
@@ -80,6 +82,7 @@ fn test_tables_invalid_more_rows() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |Minor1|Minor2|    |    |
 |------|------|----|----|
 | col1 | col2 |col3|col4|
@@ -104,6 +107,7 @@ fn test_tables_odd_column_width() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |Minor|Major|
 |-----|-----|
 |col1 |col2 |
@@ -132,6 +136,7 @@ fn test_tables_alignment() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |Minor1|Minor2|Minor3|Minor4|
 |-----:|:----:|-----:|:-----|
 | col1 | col2 | col3 | col4 |
@@ -189,6 +194,7 @@ fn test_tables_wild_example() {
 </table>"#);
 
     assert_eq!(md, r#"
+
 |          One ring           |         Patterns         |              Titanic              |   |   |   |
 |-----------------------------|--------------------------|-----------------------------------|---|---|---|
 |  One ring to rule them all  |There's one for the sorrow|      Roll on, Titanic, roll       |   |   |   |
