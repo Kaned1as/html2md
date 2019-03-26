@@ -48,7 +48,7 @@ lazy_static! {
     static ref EMPTY_LINE_PATTERN: Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
     static ref EXCESSIVE_NEWLINE_PATTERN: Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
-    static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\n+").unwrap();          // for Markdown post-processing
+    static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
     static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[\\_\-~+>*]").unwrap();           // for Markdown escaping
 }
 
@@ -77,7 +77,7 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFact
     let intermediate = EMPTY_LINE_PATTERN.replace_all(&result.data, "");              // empty line with trailing spaces, replace with just newline
     let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
     let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
-    //let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
+    let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
 
     intermediate.into_owned()
 }

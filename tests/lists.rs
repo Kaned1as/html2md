@@ -6,13 +6,12 @@ use html2md::parse_html;
 #[test]
 fn test_list_simple() {
     let md = parse_html(r#"<p><ul><li>Seven things has lady Lackless</li><li>Keeps them underneath her black dress</li><li>One a thing that's not for wearing</li></ul></p>"#);
-    assert_eq!(md, r#"
-
+    assert_eq!(md, "\
 * Seven things has lady Lackless
 * Keeps them underneath her black dress
 * One a thing that's not for wearing
 
-"#)
+")
 }
 
 #[test]
@@ -33,8 +32,7 @@ fn test_list_formatted() {
             <li>EVERYTHING IS BROKEN
     "#);
     println!("{}", &md);
-    assert_eq!(md, r#"
-
+    assert_eq!(md, "\
 * You should NEVER see this error
   * Broken lines, broken strings
   * Broken threads, broken springs
@@ -45,7 +43,7 @@ fn test_list_formatted() {
 * Ain't no use joking
 * EVERYTHING IS BROKEN
 
-"#)
+")
 }
 
 #[test]
@@ -79,7 +77,7 @@ fn test_list_stackedit() {
             <p>EVERYTHING IS BROKEN</p>
             </li>
     </ul>"#);
-    assert_eq!(md, r#"
+    assert_eq!(md, "\
 * You should NEVER see this error
 
   * Broken lines, broken strings
@@ -96,7 +94,7 @@ fn test_list_stackedit() {
 
 * EVERYTHING IS BROKEN
 
-"#)
+")
 }
 
 #[test]
@@ -132,7 +130,7 @@ fn test_list_stackedit_add_brs() {
             <p>EVERYTHING IS BROKEN</p>
             </li>
     </ul>"#);
-    assert_eq!(md, r#"
+    assert_eq!(md, "\
 * You should NEVER see this error
 
   * Broken lines, broken strings
@@ -149,7 +147,7 @@ fn test_list_stackedit_add_brs() {
 
 * EVERYTHING IS BROKEN
 
-"#)
+")
 }
 
 #[test]
@@ -164,7 +162,7 @@ fn test_list_multiline() {
             </li>
         </ol>
     "#);
-    assert_eq!(md, r#"
+    assert_eq!(md, "\
 1. In the heat and the rains
 
    With whips and chains
@@ -172,7 +170,7 @@ fn test_list_multiline() {
    Just to see him fly  
    So many die!
 
-"#)
+")
 }
 
 #[test]
@@ -194,8 +192,7 @@ fn test_list_multiline_formatted() {
                 </ul>
             </li>
     "#);
-    assert_eq!(md, r#"
-
+    assert_eq!(md, "\
 * You should NEVER see this error
   * Broken lines, broken strings
   * Broken threads, broken springs
@@ -207,7 +204,7 @@ fn test_list_multiline_formatted() {
 
     EVERYTHING IS BROKEN
 
-"#)
+")
 }
 
 #[test]
@@ -221,11 +218,11 @@ fn test_list_ordered() {
             <li>Burning into the night</li>
         </ol>
     "#);
-    assert_eq!(md, r#"
+    assert_eq!(md, "\
 1. Now did you read the news today?
 2. They say the danger's gone away
 3. Well I can see the fire still alight
 4. Burning into the night
 
-"#)
+")
 }
