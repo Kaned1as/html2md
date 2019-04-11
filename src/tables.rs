@@ -13,9 +13,9 @@ impl TagHandler for TableHandler {
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
         let mut table_markup = String::new();
 
-        let td_matcher = |cell| tag_name(&cell) == "td";
-        let th_matcher = |cell| tag_name(&cell) == "th";
-        let any_matcher = |cell| { let name = tag_name(&cell); name == "td" || name == "th" };
+        let td_matcher = |cell: &Handle| tag_name(cell) == "td";
+        let th_matcher = |cell: &Handle| tag_name(cell) == "th";
+        let any_matcher = |cell: &Handle| { let name = tag_name(cell); name == "td" || name == "th" };
 
         // detect cell width, counts
         let column_count : usize;
@@ -194,12 +194,13 @@ fn  find_children(tag: &Handle, name: &str) -> Vec<Handle> {
 /// Collect direct children that satisfy the predicate
 /// This doesn't include descendants
 fn collect_children<P>(tag: &Handle, predicate: P) -> Vec<Handle>
-where P: Fn(Handle) -> bool {
+where P: Fn(&Handle) -> bool {
     let mut result: Vec<Handle> = vec![];
     let children = tag.children.borrow();
     for child in children.iter() {
-        if predicate(child.clone()) {
-            result.push(child.clone());
+        let candidate = child.clone();
+        if predicate(&candidate) {
+            result.push(candidate);
         }
     }
 

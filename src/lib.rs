@@ -9,10 +9,11 @@ use std::ffi::{CString, CStr};
 
 use regex::Regex;
 
-pub use html5ever::rcdom::{RcDom, Handle, NodeData};
 use html5ever::parse_document;
 use html5ever::driver::ParseOpts;
 use html5ever::tendril::TendrilSink;
+
+pub use html5ever::rcdom::{RcDom, Handle, NodeData};
 
 mod dummy;
 mod anchors;
@@ -26,7 +27,8 @@ mod quotes;
 mod tables;
 mod containers;
 mod iframes;
-mod common;
+
+pub mod common;
 
 use crate::dummy::DummyHandler;
 use crate::dummy::IdentityHandler;
@@ -50,15 +52,6 @@ lazy_static! {
     static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
     static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[\\_\-~+>*]").unwrap();           // for Markdown escaping
-}
-
-/// FFI variant for HTML -> Markdown conversion for calling from other languages
-#[no_mangle]
-pub extern fn parse(html: *const c_char) -> *const c_char {
-    let in_html = unsafe { CStr::from_ptr(html) };
-    let out_md = parse_html(&in_html.to_string_lossy());
-
-    CString::new(out_md).unwrap().into_raw()
 }
 
 /// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
@@ -258,6 +251,15 @@ pub trait TagHandler {
     fn skip_descendants(&self) -> bool {
         return false;
     }
+}
+
+/// FFI variant for HTML -> Markdown conversion for calling from other languages
+#[no_mangle]
+pub extern fn parse(html: *const c_char) -> *const c_char {
+    let in_html = unsafe { CStr::from_ptr(html) };
+    let out_md = parse_html(&in_html.to_string_lossy());
+
+    CString::new(out_md).unwrap().into_raw()
 }
 
 /// Expose the JNI interface for android below

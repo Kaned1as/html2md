@@ -39,7 +39,7 @@ For details see CONTRIBUTING.md file in this repo.
 License
 -------------
 
-    Copyright (C) 2018  Oleg `Kanedias` Chernovskiy
+    Copyright (C) 2018-2019  Oleg `Kanedias` Chernovskiy
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
