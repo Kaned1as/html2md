@@ -30,7 +30,6 @@ spectral = "0.6.0"
 
 [profile.release]
 lto = true
-opt-level = 'z'
 panic = 'abort'
 
 # To use this project on Android we need JNI

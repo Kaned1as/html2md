@@ -61,7 +61,7 @@ lazy_static! {
 /// # Arguments
 /// `html` is source HTML as `String`
 /// `custom` is custom tag hadler producers for tags you want, can be empty
-pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<TagHandlerFactory>>) -> String {
+pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) -> String {
     let dom = parse_document(RcDom::default(), ParseOpts::default()).from_utf8().read_from(&mut html.as_bytes()).unwrap();
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result, custom);
@@ -90,8 +90,8 @@ pub fn parse_html(html: &str) -> String {
 /// `input` is DOM tree or its subtree
 /// `result` is output holder with position and context tracking
 /// `custom` is custom tag hadler producers for tags you want, can be empty
-fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<TagHandlerFactory>>) {
-    let mut handler : Box<TagHandler> = Box::new(DummyHandler::default());
+fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) {
+    let mut handler : Box<dyn TagHandler> = Box::new(DummyHandler::default());
     let mut tag_name = String::default();
     match input.data {
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
@@ -236,7 +236,7 @@ impl StructuredPrinter {
 }
 
 pub trait TagHandlerFactory {
-    fn instantiate(&self) -> Box<TagHandler>;
+    fn instantiate(&self) -> Box<dyn TagHandler>;
 }
 
 /// Trait interface describing abstract handler of arbitrary HTML tag.

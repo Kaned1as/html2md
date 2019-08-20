@@ -36,10 +36,15 @@ impl TagHandler for ImgHandler {
         } else {
             // need to escape URL if it contains spaces
             // don't have any geometry-controlling attrs, post markdown natively
+            let mut img_url = src.unwrap_or_default();
+            if img_url.contains(' ') {
+                img_url = utf8_percent_encode(&img_url, DEFAULT_ENCODE_SET).to_string();
+            }
+
             printer.append_str(
                 &format!("![{}]({}{})", 
                     alt.unwrap_or_default(), 
-                    utf8_percent_encode(&src.unwrap_or_default(), DEFAULT_ENCODE_SET),
+                    &img_url,
                     title.map(|value| format!(" \"{}\"", value)).unwrap_or_default()));
         }
     }

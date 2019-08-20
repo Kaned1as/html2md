@@ -38,3 +38,10 @@ fn test_image_with_space_issue() {
     let md = parse_html("<img src=\"https://i.redd.it/l0ne 52x7f h611.png\" alt=\"image of usual kill -9 sequence\" />");
     assert_eq!(md, "![image of usual kill -9 sequence](https://i.redd.it/l0ne%2052x7f%20h611.png)")
 }
+
+
+#[test]
+fn test_image_with_query_issue() {
+    let md = parse_html("<img src=\"https://instagram.ftll1-1.fna.fbcdn.net/vp/4c753762a3cd58ec2cd55f7e20f87e5c/5D39A8B3/t51.2885-15/sh0.08/e35/p640x640/54511922_267736260775264_8482507773977053160_n.jpg?_nc_ht=instagram.ftll1-1.fna.fbcdn.net\" style=\"width: 494px;\">");
+    assert_eq!(md, "![](https://instagram.ftll1-1.fna.fbcdn.net/vp/4c753762a3cd58ec2cd55f7e20f87e5c/5D39A8B3/t51.2885-15/sh0.08/e35/p640x640/54511922_267736260775264_8482507773977053160_n.jpg?_nc_ht=instagram.ftll1-1.fna.fbcdn.net)")
+}

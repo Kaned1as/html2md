@@ -1,10 +1,10 @@
+---
 variables:
   GET_SOURCES_ATTEMPTS: "3"
   GIT_SUBMODULE_STRATEGY: "recursive"
 
 stages:
   - linux build
-
 
 
 build on default image:
