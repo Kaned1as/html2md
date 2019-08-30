@@ -5,7 +5,7 @@ use crate::common::get_tag_attr;
 
 use html5ever::rcdom::Handle;
 
-use percent_encoding::{utf8_percent_encode, DEFAULT_ENCODE_SET};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
 /// Handler for `<img>` tag. Depending on circumstances can produce both
 /// inline HTML-formatted image and Markdown native one
@@ -38,7 +38,7 @@ impl TagHandler for ImgHandler {
             // don't have any geometry-controlling attrs, post markdown natively
             let mut img_url = src.unwrap_or_default();
             if img_url.contains(' ') {
-                img_url = utf8_percent_encode(&img_url, DEFAULT_ENCODE_SET).to_string();
+                img_url = utf8_percent_encode(&img_url, NON_ALPHANUMERIC).to_string();
             }
 
             printer.append_str(
