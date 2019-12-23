@@ -3,7 +3,7 @@ use super::StructuredPrinter;
 
 use std::cmp;
 
-use html5ever::rcdom::{Handle,NodeData};
+use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
 pub(super) struct TableHandler;

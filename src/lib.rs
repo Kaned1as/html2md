@@ -13,7 +13,7 @@ use html5ever::parse_document;
 use html5ever::driver::ParseOpts;
 use html5ever::tendril::TendrilSink;
 
-pub use html5ever::rcdom::{RcDom, Handle, NodeData};
+pub use markup5ever_rcdom::{RcDom, Handle, NodeData};
 
 mod dummy;
 mod anchors;
@@ -32,6 +32,7 @@ pub mod common;
 
 use crate::dummy::DummyHandler;
 use crate::dummy::IdentityHandler;
+use crate::dummy::HtmlCherryPickHandler;
 use crate::paragraphs::ParagraphHandler;
 use crate::anchors::AnchorHandler;
 use crate::images::ImgHandler;
@@ -131,6 +132,8 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     // pagination, breaks
                     "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
                     "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
+                    // spoiler tag
+                    "details" | "summary" => Box::new(HtmlCherryPickHandler::default()),
                     // formatting
                     "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                     "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(HeaderHandler::default()),

@@ -1,6 +1,7 @@
 extern crate html2md;
 
 use html2md::parse_html;
+use indoc::indoc;
 
 #[test]
 fn test_quotes() {
@@ -34,6 +35,16 @@ fn test_blockquotes() {
 Should not crash the parser")
 }
 
+#[test]
+fn test_details() {
+    let md = parse_html(indoc!("
+    <details>
+        <summary>There are more things in heaven and Earth, <b>Horatio</b></summary>
+        Than are dreamt of in your philosophy
+    </details>
+    "));
+    assert_eq!(md, "<details> <summary>There are more things in heaven and Earth, **Horatio**</summary> Than are dreamt of in your philosophy</details>")
+}
 
 #[test]
 fn test_subsup() {

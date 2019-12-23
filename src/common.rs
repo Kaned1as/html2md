@@ -1,4 +1,4 @@
-use html5ever::rcdom::{Handle,NodeData};
+use markup5ever_rcdom::{Handle,NodeData};
 
 pub fn get_tag_attr(tag: &Handle, attr_name: &str) -> Option<String> {
     match tag.data {

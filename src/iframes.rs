@@ -7,7 +7,7 @@ use crate::common::get_tag_attr;
 use crate::dummy::IdentityHandler;
 
 use regex::Regex;
-use html5ever::rcdom::Handle;
+use markup5ever_rcdom::Handle;
 
 lazy_static! {
     /// Pattern that detects iframes with Youtube embedded videos
@@ -60,7 +60,7 @@ impl TagHandler for IframeHandler {
         }
 
         // not found, use generic implementation
-        let mut identity = IdentityHandler {};
+        let mut identity = IdentityHandler::default();
         identity.handle(tag, printer);
     }
 

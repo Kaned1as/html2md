@@ -1,7 +1,7 @@
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use html5ever::rcdom::Handle;
+use markup5ever_rcdom::Handle;
 
 #[derive(Default)]
 pub(super) struct QuoteHandler {
