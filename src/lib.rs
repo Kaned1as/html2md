@@ -52,7 +52,7 @@ lazy_static! {
     static ref EXCESSIVE_NEWLINE_PATTERN: Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
-    static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[\\_\-~+>*]").unwrap();           // for Markdown escaping
+    static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[!\\_\-~+>*]").unwrap();        // for Markdown escaping
 }
 
 /// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
