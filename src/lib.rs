@@ -81,6 +81,22 @@ pub fn parse_html(html: &str) -> String {
     parse_html_custom(html, &HashMap::default())
 }
 
+/// Same as `parse_html` but retains all "span" html elements intact
+/// Markdown parsers usually strip them down when rendering but they 
+/// may be useful for later processing
+pub fn parse_html_extended(html: &str) -> String {
+    struct SpanAsIsTagFactory;
+    impl TagHandlerFactory for SpanAsIsTagFactory {
+        fn instantiate(&self) -> Box<dyn TagHandler> {
+            return Box::new(HtmlCherryPickHandler::default());
+        }
+    };
+
+    let mut tag_factory: HashMap<String, Box<dyn TagHandlerFactory>> = HashMap::new();
+    tag_factory.insert(String::from("span"), Box::new(SpanAsIsTagFactory{}));
+    return parse_html_custom(html, &tag_factory);
+}
+
 /// Recursively walk through all DOM tree and handle all elements according to 
 /// HTML tag -> Markdown syntax mapping. Text content is trimmed to one whitespace according to HTML5 rules.
 /// 
@@ -115,9 +131,11 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
         NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
-
-            // try to get tag handler from user-supplied factory
-            if custom.contains_key(&tag_name) {
+            let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
+            if inside_pre {
+                // don't add any html tags inside the pre section
+                handler = Box::new(DummyHandler::default());
+            }else if custom.contains_key(&tag_name) {
                 // have user-supplied factory, instantiate a handler for this tag
                 let factory = custom.get(&tag_name).unwrap();
                 handler = factory.instantiate();
@@ -287,6 +305,7 @@ pub mod android {
     extern crate jni;
 
     use super::parse_html;
+    use super::parse_html_extended;
 
     use self::jni::JNIEnv;
     use self::jni::objects::{JClass, JString};
@@ -296,6 +315,14 @@ pub mod android {
     pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parse(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
         let html_java : String = env.get_string(html).expect("Couldn't get java string!").into();
         let markdown = parse_html(&html_java);
+        let output = env.new_string(markdown).expect("Couldn't create java string!");
+        output.into_inner()
+    }
+
+    #[no_mangle]
+    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parseExtended(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
+        let html_java : String = env.get_string(html).expect("Couldn't get java string!").into();
+        let markdown = parse_html_extended(&html_java);
         let output = env.new_string(markdown).expect("Couldn't create java string!");
         output.into_inner()
     }
