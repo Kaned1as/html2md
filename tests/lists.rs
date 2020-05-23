@@ -9,9 +9,7 @@ fn test_list_simple() {
     assert_eq!(md, "\
 * Seven things has lady Lackless
 * Keeps them underneath her black dress
-* One a thing that's not for wearing
-
-")
+* One a thing that's not for wearing")
 }
 
 #[test]
@@ -41,9 +39,7 @@ fn test_list_formatted() {
 
 * Ain't no use jiving
 * Ain't no use joking
-* EVERYTHING IS BROKEN
-
-")
+* EVERYTHING IS BROKEN")
 }
 
 #[test]
@@ -92,9 +88,7 @@ fn test_list_stackedit() {
 
 * Ain’t no use joking
 
-* EVERYTHING IS BROKEN
-
-")
+* EVERYTHING IS BROKEN")
 }
 
 #[test]
@@ -145,9 +139,7 @@ fn test_list_stackedit_add_brs() {
 
 * Ain’t no use joking
 
-* EVERYTHING IS BROKEN
-
-")
+* EVERYTHING IS BROKEN")
 }
 
 #[test]
@@ -168,9 +160,7 @@ fn test_list_multiline() {
    With whips and chains
 
    Just to see him fly  
-   So many die!
-
-")
+   So many die\\!")
 }
 
 #[test]
@@ -202,9 +192,7 @@ fn test_list_multiline_formatted() {
 
     Ain't no use joking
 
-    EVERYTHING IS BROKEN
-
-")
+    EVERYTHING IS BROKEN")
 }
 
 #[test]
@@ -222,7 +210,5 @@ fn test_list_ordered() {
 1. Now did you read the news today?
 2. They say the danger's gone away
 3. Well I can see the fire still alight
-4. Burning into the night
-
-")
+4. Burning into the night")
 }

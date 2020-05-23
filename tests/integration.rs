@@ -58,11 +58,25 @@ fn test_lists_from_text() {
 
 #[test]
 fn test_strong_inside_link() {
-    
-
     let mut html = String::new();
     let mut html_file = File::open("test-samples/dybr-bug-with-strong-inside-link.html").unwrap();
     html_file.read_to_string(&mut html).expect("File must be readable");
     let result = parse_html(&html);
     assert_that(&result).contains("[**Just God**](http://fanfics.me/ficXXXXXXX)");
+}
+
+#[test]
+fn test_tables_with_newlines() {
+    let mut html = String::new();
+    let mut html_file = File::open("test-samples/dybr-bug-with-tables-masked.html").unwrap();
+    html_file.read_to_string(&mut html).expect("File must be readable");
+    let result = parse_html(&html);
+
+    // all lines starting with | should end with | as well
+    let invalid_table_lines: Vec<&str> = result.lines()
+        .filter(|line| line.starts_with("|"))
+        .filter(|line| !line.ends_with("|"))
+        .collect();
+        
+    assert_that(&invalid_table_lines).is_empty();
 }

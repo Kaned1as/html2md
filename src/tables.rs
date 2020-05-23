@@ -1,7 +1,8 @@
+use super::{walk, clean_markdown};
 use super::TagHandler;
 use super::StructuredPrinter;
 
-use std::cmp;
+use std::{collections::HashMap, cmp};
 
 use markup5ever_rcdom::{Handle,NodeData};
 
@@ -39,7 +40,7 @@ impl TagHandler for TableHandler {
                     // from regular rows
                     if let Some(cell) = cells.get(index) {
                         let text = to_text(cell);
-                        column_widths[index] = cmp::max(column_widths[index], text.len());
+                        column_widths[index] = cmp::max(column_widths[index], text.chars().count());
                     }
                 }
             }
@@ -47,17 +48,18 @@ impl TagHandler for TableHandler {
 
         {
             // add header row
-            let mut header_cells : Vec<Handle> = vec![];
             let header_tr = rows.iter().find(|row| collect_children(&row, th_matcher).len() > 0);
-            if let Some(header_row) = header_tr {
-                // have header row, take data from it
+            let header_cells = if let Some(header_row) = header_tr {
+                collect_children(header_row, th_matcher)
+            } else {
+                Vec::new()
+            };
+
+            table_markup.push('|');
+            for index in 0..column_count {
+                let padded_header_text = pad_cell_text(&header_cells.get(index), column_widths[index]);
+                table_markup.push_str(&padded_header_text);
                 table_markup.push('|');
-                header_cells = collect_children(header_row, th_matcher);
-                for index in 0..column_count {
-                    let padded_header_text = pad_cell_text(&header_cells.get(index), column_widths[index]);
-                    table_markup.push_str(&padded_header_text);
-                    table_markup.push('|');
-                }
             }
             table_markup.push('\n');
 
@@ -137,7 +139,7 @@ fn pad_cell_text(tag: &Option<&Handle>, column_width: usize) -> String {
         // have header at specified position
         let text = to_text(cell);
         // compute difference between width and text length
-        let len_diff = column_width - text.len();
+        let len_diff = column_width - text.chars().count();
         if len_diff > 0 {
             // should pad
             if len_diff > 1 {
@@ -210,16 +212,10 @@ where P: Fn(&Handle) -> bool {
 /// Convert html tag to text. This collects all tag children in correct order where they're observed
 /// and concatenates their text, recursively.
 fn  to_text(tag: &Handle) -> String {
-    let mut result = String::new();
-    match tag.data {
-        NodeData::Text { ref contents }  => result.push_str(&contents.borrow().trim()),
-        _ => {}
-    }
-    let children = tag.children.borrow();
-    for child in children.iter() {
-        let child_text = to_text(child);
-        result.push_str(&child_text);
-    }
-    
-    return result;
+    let mut printer = StructuredPrinter::default();
+    walk(tag, &mut printer, &HashMap::default());
+
+
+    let result = clean_markdown(&printer.data);
+    return result.replace("\n", "<br/>");
 }

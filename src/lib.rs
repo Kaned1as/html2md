@@ -48,10 +48,13 @@ use crate::iframes::IframeHandler;
 
 lazy_static! {
     static ref EXCESSIVE_WHITESPACE_PATTERN: Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
+
     static ref EMPTY_LINE_PATTERN: Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
     static ref EXCESSIVE_NEWLINE_PATTERN: Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
     static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
     static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
+    static ref LAST_WHITESPACE_PATTERN: Regex = Regex::new("\\s+$").unwrap();          // for Markdown post-processing
+
     static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[!\\_\-~+>*]").unwrap();        // for Markdown escaping
 }
 
@@ -67,13 +70,7 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<dyn TagHandler
     let mut result = StructuredPrinter::default();
     walk(&dom.document, &mut result, custom);
 
-    // remove redundant newlines
-    let intermediate = EMPTY_LINE_PATTERN.replace_all(&result.data, "");              // empty line with trailing spaces, replace with just newline
-    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
-    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
-    let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
-
-    intermediate.into_owned()
+    return clean_markdown(&result.data);
 }
 
 /// Main function of this library. Parses incoming HTML, converts it into Markdown 
@@ -204,6 +201,17 @@ fn escape_markdown(text: &str) -> String {
     return data.into_owned();
 }
 
+fn clean_markdown(text: &str) -> String {
+    // remove redundant newlines
+    let intermediate = EMPTY_LINE_PATTERN.replace_all(&text, "");                           // empty line with trailing spaces, replace with just newline
+    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
+    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
+    let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
+    let intermediate = LAST_WHITESPACE_PATTERN.replace_all(&intermediate, "");        // trim last newlines
+
+    return intermediate.into_owned();
+}
+
 /// Intermediate result of HTML -> Markdown conversion.
 /// 
 /// Holds context in the form of parent tags and siblings chain
@@ -238,6 +246,13 @@ impl StructuredPrinter {
     }
 }
 
+/// Tag handler factory. This class is required in providing proper
+/// custom tag parsing capabilities to users of this library.
+///
+/// The problem with directly providing tag handlers is that they're not stateless.
+/// Once tag handler is parsing some tag, it holds data, such as start position, indent etc.
+/// The only way to create fresh tag handler for each tag is to provide a factory like this one.
+///
 pub trait TagHandlerFactory {
     fn instantiate(&self) -> Box<dyn TagHandler>;
 }

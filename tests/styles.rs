@@ -27,6 +27,5 @@ And she said:
 And in the master's chambers  
 They gathered for the feast  
 *They stab it with their steely knives*  
-**But they just can't kill the beast**  
-")
+**But they just can't kill the beast**")
 }

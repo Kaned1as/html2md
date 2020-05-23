@@ -26,8 +26,7 @@ fn test_tables() {
     assert_eq!(md, "\
 |Minor1|Minor2|Minor3|Minor4|
 |------|------|------|------|
-| col1 | col2 | col3 | col4 |
-");
+| col1 | col2 | col3 | col4 |");
 }
 
 #[test]
@@ -56,8 +55,7 @@ fn test_tables_invalid_more_headers() {
     assert_eq!(md, "\
 |Minor1|Minor2|Minor3|Minor4|Minor5|Minor6|
 |------|------|------|------|------|------|
-| col1 | col2 | col3 | col4 |      |      |
-");
+| col1 | col2 | col3 | col4 |      |      |");
 }
 
 #[test]
@@ -82,8 +80,7 @@ fn test_tables_invalid_more_rows() {
     assert_eq!(md, "\
 |Minor1|Minor2|    |    |
 |------|------|----|----|
-| col1 | col2 |col3|col4|
-");
+| col1 | col2 |col3|col4|");
 }
 
 #[test]
@@ -106,8 +103,7 @@ fn test_tables_odd_column_width() {
     assert_eq!(md, "\
 |Minor|Major|
 |-----|-----|
-|col1 |col2 |
-");
+|col1 |col2 |");
 }
 
 #[test]
@@ -134,8 +130,7 @@ fn test_tables_alignment() {
     assert_eq!(md, "\
 |Minor1|Minor2|Minor3|Minor4|
 |-----:|:----:|-----:|:-----|
-| col1 | col2 | col3 | col4 |
-");
+| col1 | col2 | col3 | col4 |");
 }
 
 #[test]
@@ -194,6 +189,5 @@ fn test_tables_wild_example() {
 |  One ring to rule them all  |There's one for the sorrow|      Roll on, Titanic, roll       |   |   |   |
 |    One ring to find them    |   And two for the joy    |You're the pride of White Star Line|   |   |   |
 | One ring to bring them all  | And three for the girls  |      Roll on, Titanic, roll       |   |   |   |
-|And in the darkness bind them|  And four for the boys   |      Into the mists of time       |   |   |   |
-");
+|And in the darkness bind them|  And four for the boys   |      Into the mists of time       |   |   |   |");
 }
