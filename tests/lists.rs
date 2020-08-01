@@ -160,7 +160,7 @@ fn test_list_multiline() {
    With whips and chains
 
    Just to see him fly  
-   So many die\\!")
+   So many die!")
 }
 
 #[test]

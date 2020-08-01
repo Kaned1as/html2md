@@ -55,12 +55,14 @@ lazy_static! {
     static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
     static ref LAST_WHITESPACE_PATTERN: Regex = Regex::new("\\s+$").unwrap();          // for Markdown post-processing
 
-    static ref MARKDOWN_KEYCHARS: Regex = Regex::new(r"[!\\_\-~+>*]").unwrap();        // for Markdown escaping
+    static ref START_OF_LINE_PATTERN: Regex = Regex::new("\\n *$").unwrap();                // for Markdown escaping
+    static ref MARKDOWN_STARTONLY_KEYCHARS: Regex = Regex::new(r"^(\s*)([>+\-])").unwrap(); // for Markdown escaping
+    static ref MARKDOWN_MIDDLE_KEYCHARS: Regex = Regex::new(r"[*\\_=~]").unwrap();          // for Markdown escaping
 }
 
 /// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
 /// in order to register custom tag hadler for tags you want.
-/// 
+///
 /// You can also override standard tag handlers this way
 /// # Arguments
 /// `html` is source HTML as `String`
@@ -73,7 +75,7 @@ pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<dyn TagHandler
     return clean_markdown(&result.data);
 }
 
-/// Main function of this library. Parses incoming HTML, converts it into Markdown 
+/// Main function of this library. Parses incoming HTML, converts it into Markdown
 /// and returns converted string.
 /// # Arguments
 /// `html` is source HTML as `String`
@@ -82,7 +84,7 @@ pub fn parse_html(html: &str) -> String {
 }
 
 /// Same as `parse_html` but retains all "span" html elements intact
-/// Markdown parsers usually strip them down when rendering but they 
+/// Markdown parsers usually strip them down when rendering but they
 /// may be useful for later processing
 pub fn parse_html_extended(html: &str) -> String {
     struct SpanAsIsTagFactory;
@@ -97,9 +99,9 @@ pub fn parse_html_extended(html: &str) -> String {
     return parse_html_custom(html, &tag_factory);
 }
 
-/// Recursively walk through all DOM tree and handle all elements according to 
+/// Recursively walk through all DOM tree and handle all elements according to
 /// HTML tag -> Markdown syntax mapping. Text content is trimmed to one whitespace according to HTML5 rules.
-/// 
+///
 /// # Arguments
 /// `input` is DOM tree or its subtree
 /// `result` is output holder with position and context tracking
@@ -121,7 +123,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                 // regular text, collapse whitespace and newlines in text
                 let inside_code = result.parent_chain.iter().any(|tag| tag == "code");
                 if !inside_code {
-                    text = escape_markdown(&text);
+                    text = escape_markdown(result, &text);
                 }
                 let minified_text = EXCESSIVE_WHITESPACE_PATTERN.replace_all(&text, " ");
                 let minified_text = minified_text.trim_matches(|ch: char| ch == '\n' || ch == '\r');
@@ -188,7 +190,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
         if handler.skip_descendants() {
             continue;
         }
-        
+
         walk(child.borrow(), result, custom);
 
         match child.data {
@@ -208,17 +210,26 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 }
 
 /// This conversion should only be applied to text tags
-/// 
+///
 /// Escapes text inside HTML tags so it won't be recognized as Markdown control sequence
 /// like list start or bold text style
-fn escape_markdown(text: &str) -> String {
-    let data = MARKDOWN_KEYCHARS.replace_all(&text, "\\$0");
+fn escape_markdown(result: &StructuredPrinter, text: &str) -> String {
+    // always escape bold/italic/strikethrough
+    let mut data = MARKDOWN_MIDDLE_KEYCHARS.replace_all(&text, "\\$0").to_string();
+
+    // if we're at the start of the line we need to escape list- and quote-starting sequences
+    if START_OF_LINE_PATTERN.is_match(&result.data) {
+        data = MARKDOWN_STARTONLY_KEYCHARS.replace(&data, "$1\\$2").to_string();
+    }
 
     // no handling of more complicated cases such as
     // ![] or []() ones, for now this will suffice
-    return data.into_owned();
+    return data;
 }
 
+/// Called after all processing has been finished
+///
+/// Clears excessive punctuation that would be trimmed by renderer anyway
 fn clean_markdown(text: &str) -> String {
     // remove redundant newlines
     let intermediate = EMPTY_LINE_PATTERN.replace_all(&text, "");                           // empty line with trailing spaces, replace with just newline
@@ -231,13 +242,15 @@ fn clean_markdown(text: &str) -> String {
 }
 
 /// Intermediate result of HTML -> Markdown conversion.
-/// 
+///
 /// Holds context in the form of parent tags and siblings chain
 /// and resulting string of markup content with current position.
 #[derive(Debug, Default)]
 pub struct StructuredPrinter {
     /// Chain of parents leading to upmost <html> tag
     pub parent_chain: Vec<String>,
+
+    pub inside_content: bool,
 
     /// Siblings of currently processed tag in order where they're appearing in html
     pub siblings: HashMap<usize, Vec<String>>,
@@ -309,7 +322,7 @@ pub mod android {
 
     use self::jni::JNIEnv;
     use self::jni::objects::{JClass, JString};
-    use self::jni::sys::{jstring};
+    use self::jni::sys::jstring;
 
     #[no_mangle]
     pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parse(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
