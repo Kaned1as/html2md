@@ -11,14 +11,15 @@ pub(super) struct DummyHandler;
 impl TagHandler for DummyHandler {
 
     fn handle(&mut self, _tag: &Handle, _printer: &mut StructuredPrinter) {
-       
+
     }
 
     fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
-        
+
     }
 }
 
+/// Handler that completely copies tag to printer as HTML with all descendants
 #[derive(Default)]
 pub(super) struct IdentityHandler;
 
@@ -37,7 +38,7 @@ impl TagHandler for IdentityHandler {
 
         let conv = String::from_utf8(buffer);
         if conv.is_err() {
-            // is non-utf8 string possible in html5ever? 
+            // is non-utf8 string possible in html5ever?
             return;
         }
 
@@ -66,7 +67,7 @@ impl TagHandler for HtmlCherryPickHandler {
             NodeData::Element { ref name, ref attrs, .. } => {
                 let attrs = attrs.borrow();
                 self.tag_name = name.local.to_string();
-                
+
                 printer.append_str(&format!("<{}", self.tag_name));
                 for attr in attrs.iter() {
                     printer.append_str(&format!(" {}=\"{}\"", attr.name.local, attr.value));
@@ -83,5 +84,9 @@ impl TagHandler for HtmlCherryPickHandler {
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         printer.append_str(&format!("</{}>", self.tag_name));
+
+        // put two newlines after tag so commonmark parser won't detect text after it as part of the tag
+        printer.insert_newline();
+        printer.insert_newline();
     }
 }

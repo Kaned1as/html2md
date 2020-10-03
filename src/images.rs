@@ -15,8 +15,18 @@ const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').ad
 pub(super) struct ImgHandler;
 
 impl TagHandler for ImgHandler {
-    
+
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+        // hack: if the image has associated style
+        // and it has display in block mode, make it on the new paragraph
+        let style_tag = get_tag_attr(tag, "src");
+        if let Some(style) = style_tag {
+            if style.contains("display: block") {
+                printer.insert_newline();
+                printer.insert_newline();
+            }
+        }
+
         // try to extract attrs
         let src = get_tag_attr(tag, "src");
         let alt = get_tag_attr(tag, "alt");
@@ -24,7 +34,7 @@ impl TagHandler for ImgHandler {
         let height = get_tag_attr(tag, "height");
         let width = get_tag_attr(tag, "width");
         let align = get_tag_attr(tag, "align");
-        
+
         if height.is_some() || width.is_some() || align.is_some() {
             // need to handle it as inline html to preserve attributes we support
             printer.append_str(

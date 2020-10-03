@@ -39,7 +39,7 @@ fn test_details() {
         Than are dreamt of in your philosophy
     </details>
     "));
-    assert_eq!(md, "<details> <summary>There are more things in heaven and Earth, **Horatio**</summary> Than are dreamt of in your philosophy</details>")
+    assert_eq!(md, "<details> <summary>There are more things in heaven and Earth, **Horatio**</summary>\n\n Than are dreamt of in your philosophy</details>")
 }
 
 #[test]
