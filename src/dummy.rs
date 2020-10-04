@@ -84,9 +84,5 @@ impl TagHandler for HtmlCherryPickHandler {
 
     fn after_handle(&mut self, printer: &mut StructuredPrinter) {
         printer.append_str(&format!("</{}>", self.tag_name));
-
-        // put two newlines after tag so commonmark parser won't detect text after it as part of the tag
-        printer.insert_newline();
-        printer.insert_newline();
     }
 }

@@ -12,19 +12,25 @@ const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').ad
 /// Handler for `<img>` tag. Depending on circumstances can produce both
 /// inline HTML-formatted image and Markdown native one
 #[derive(Default)]
-pub(super) struct ImgHandler;
+pub(super) struct ImgHandler {
+    block_mode: bool
+}
 
 impl TagHandler for ImgHandler {
 
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
-        // hack: if the image has associated style
-        // and it has display in block mode, make it on the new paragraph
+        // hack: detect if the image has associated style and has display in block mode
         let style_tag = get_tag_attr(tag, "src");
         if let Some(style) = style_tag {
             if style.contains("display: block") {
-                printer.insert_newline();
-                printer.insert_newline();
+                self.block_mode = true
             }
+        }
+
+        if self.block_mode {
+            // make image on new paragraph
+            printer.insert_newline();
+            printer.insert_newline();
         }
 
         // try to extract attrs
@@ -61,6 +67,10 @@ impl TagHandler for ImgHandler {
         }
     }
 
-    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+        if self.block_mode {
+            printer.insert_newline();
+            printer.insert_newline();
+        }
     }
 }
