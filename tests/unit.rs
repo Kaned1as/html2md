@@ -53,6 +53,12 @@ fn test_escaping_start_hyphens() {
     assert_eq!(md, "\\- This is a header with starting hyphen!\n==========")
 }
 
+#[test]
+fn test_escaping_start_sharp() {
+    let md = parse_html("<html># nothing to worry about</html>");
+    assert_eq!(md, "\\# nothing to worry about")
+}
+
 /// Note: Also strips multiple spaces
 #[test]
 fn test_escaping_start_hyphens_space() {
