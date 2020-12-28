@@ -33,13 +33,14 @@ Should not crash the parser")
 
 #[test]
 fn test_details() {
-    let md = parse_html(indoc!("
+    let html = indoc! {"
     <details>
         <summary>There are more things in heaven and Earth, <b>Horatio</b></summary>
-        Than are dreamt of in your philosophy
+        <p>Than are dreamt of in your philosophy</p>
     </details>
-    "));
-    assert_eq!(md, "<details> <summary>There are more things in heaven and Earth, **Horatio**</summary>\n\n Than are dreamt of in your philosophy</details>")
+    "};
+    let md = parse_html(&html);
+    assert_eq!(md, "<details> <summary>There are more things in heaven and Earth, **Horatio**</summary>\n\nThan are dreamt of in your philosophy\n\n</details>")
 }
 
 #[test]
