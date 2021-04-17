@@ -130,7 +130,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                 result.append_str(&minified_text);
             }
         }
-        NodeData::Comment { ref contents } => println!("<!-- {} -->", contents),
+        NodeData::Comment { ref contents } => {},
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
