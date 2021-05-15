@@ -29,7 +29,6 @@ fn test_list_formatted() {
             <li>Ain't no use joking</li>
             <li>EVERYTHING IS BROKEN
     "#);
-    println!("{}", &md);
     assert_eq!(md, "\
 * You should NEVER see this error
   * Broken lines, broken strings

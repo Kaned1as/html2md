@@ -34,8 +34,6 @@ fn test_cheatsheet() {
 /// newlines after list shouldn't be converted into text of the last list element
 #[test]
 fn test_list_newlines() {
-    
-
     let mut html = String::new();
     let mut html_file = File::open("test-samples/dybr-bug-with-list-newlines.html").unwrap();
     html_file.read_to_string(&mut html).expect("File must be readable");
@@ -77,6 +75,6 @@ fn test_tables_with_newlines() {
         .filter(|line| line.starts_with("|"))
         .filter(|line| !line.ends_with("|"))
         .collect();
-        
+
     assert_that(&invalid_table_lines).is_empty();
 }

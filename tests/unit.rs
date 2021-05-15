@@ -66,6 +66,11 @@ fn test_escaping_start_hyphens_space() {
     assert_eq!(md, " \\- This is a header with starting hyphen!\n==========")
 }
 
+#[test]
+fn test_escaping_html_tags() {
+    let md = parse_html(r#"xxxxxxx xx xxxxxxxxxxx: &lt;iframe src="xxxxxx_xx_xxxxxxxxxxx/embed/" allowfullscreen="" height="725" width="450"&gt;&lt;/iframe&gt;"#);
+    assert_eq!(md, r#"xxxxxxx xx xxxxxxxxxxx: \<iframe src="xxxxxx\_xx\_xxxxxxxxxxx/embed/" allowfullscreen="" height="725" width="450"\>\</iframe\>"#)
+}
 
 #[test]
 fn test_headers() {

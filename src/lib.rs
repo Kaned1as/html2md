@@ -56,8 +56,8 @@ lazy_static! {
     static ref LAST_WHITESPACE_PATTERN: Regex = Regex::new("\\s+$").unwrap();          // for Markdown post-processing
 
     static ref START_OF_LINE_PATTERN: Regex = Regex::new("(^|\\n) *$").unwrap();                  // for Markdown escaping
-    static ref MARKDOWN_STARTONLY_KEYCHARS: Regex = Regex::new(r"^(\s*)([=>+\-#])").unwrap(); // for Markdown escaping
-    static ref MARKDOWN_MIDDLE_KEYCHARS: Regex = Regex::new(r"[*\\_~]").unwrap();             // for Markdown escaping
+    static ref MARKDOWN_STARTONLY_KEYCHARS: Regex = Regex::new(r"^(\s*)([=>+\-#])").unwrap();     // for Markdown escaping
+    static ref MARKDOWN_MIDDLE_KEYCHARS: Regex = Regex::new(r"[<>*\\_~]").unwrap();               // for Markdown escaping
 }
 
 /// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
