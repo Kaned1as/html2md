@@ -3,6 +3,11 @@ use super::StructuredPrinter;
 
 use markup5ever_rcdom::Handle;
 
+/// gets all list elements registered by a `StructuredPrinter` in reverse order
+fn list_hierarchy(printer: &mut StructuredPrinter) -> Vec<&String> {
+    printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect()
+}
+
 #[derive(Default)]
 pub(super) struct ListHandler {
 }
@@ -12,6 +17,11 @@ impl TagHandler for ListHandler {
     /// we're entering "ul" or "ol" tag, no "li" handling here
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         printer.insert_newline();
+
+        // insert an extra newline for non-nested lists
+        if list_hierarchy(printer).is_empty() {
+            printer.insert_newline();
+        }
     }
 
     /// indent now-ready list
@@ -31,7 +41,7 @@ impl TagHandler for ListItemHandler {
 
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         {
-            let parent_lists: Vec<&String> = printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect();
+            let parent_lists = list_hierarchy(printer);
             let nearest_parent_list = parent_lists.first();
             if nearest_parent_list.is_none() {
                 // no parent list
@@ -44,7 +54,7 @@ impl TagHandler for ListItemHandler {
 
         if printer.data.chars().last() != Some('\n') {
             // insert newline when declaring a list item only in case there isn't any newline at the end of text
-            printer.insert_newline(); 
+            printer.insert_newline();
         }
 
         let current_depth = printer.parent_chain.len();
