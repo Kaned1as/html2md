@@ -7,21 +7,18 @@ use std::{collections::HashMap, cmp};
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct TableHandler;
+pub struct TableHandler;
 
 impl TagHandler for TableHandler {
-    
+
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
         let mut table_markup = String::new();
-
-        let td_matcher = |cell: &Handle| tag_name(cell) == "td";
-        let th_matcher = |cell: &Handle| tag_name(cell) == "th";
         let any_matcher = |cell: &Handle| { let name = tag_name(cell); name == "td" || name == "th" };
 
         // detect cell width, counts
         let column_count : usize;
         let mut column_widths : Vec<usize>;
-        let mut rows = find_children(tag, "tr");
+        let rows = find_children(tag, "tr");
         {
             // detect row count
             let most_big_row = rows.iter().max_by(|left, right| collect_children(&left, any_matcher).len().cmp(&collect_children(&right, any_matcher).len()));
@@ -46,72 +43,55 @@ impl TagHandler for TableHandler {
             }
         }
 
-        {
-            // add header row
-            let header_tr = rows.iter().find(|row| collect_children(&row, th_matcher).len() > 0);
-            let header_cells = if let Some(header_row) = header_tr {
-                collect_children(header_row, th_matcher)
-            } else {
-                Vec::new()
-            };
-
+        // header row must always be present
+        for (idx, row) in rows.iter().enumerate() {
             table_markup.push('|');
-            for index in 0..column_count {
-                let padded_header_text = pad_cell_text(&header_cells.get(index), column_widths[index]);
-                table_markup.push_str(&padded_header_text);
-                table_markup.push('|');
-            }
-            table_markup.push('\n');
-
-            // add header-body divider row
-            table_markup.push('|');
-            for index in 0..column_count {
-                let width = column_widths[index];
-                if width < 3 {
-                    // no point in aligning, just post as-is
-                    table_markup.push_str(&"-".repeat(width));
-                    table_markup.push('|');
-                    continue;
-                }
-
-                // try to detect alignment
-                let mut alignment = String::new();
-                if let Some(header_cell) = header_cells.get(index) {
-                    // we have a header, try to extract alignment from it
-                    alignment = match header_cell.data {
-                        NodeData::Element { ref attrs, .. } => {
-                            let attrs = attrs.borrow();
-                            let align_attr = attrs.iter().find(|attr| attr.name.local.to_string() == "align");
-                            align_attr.map(|attr| attr.value.to_string()).unwrap_or_default()
-                        }
-                        _ => String::new()
-                    };
-                }
-
-                // push lines according to alignment, fallback to default behaviour
-                match alignment.as_ref() {
-                    "left" => { table_markup.push(':'); table_markup.push_str(&"-".repeat(width - 1)); }
-                    "center" => { table_markup.push(':'); table_markup.push_str(&"-".repeat(width - 2)); table_markup.push(':'); }
-                    "right" => { table_markup.push_str(&"-".repeat(width - 1)); table_markup.push(':'); }
-                    _ => table_markup.push_str(&"-".repeat(width))
-                }
-                table_markup.push('|');
-            }
-            table_markup.push('\n');
-        }
-
-        // remove headers, leave only non-header rows now
-        // process table rows
-        rows.retain(|row| { let children = row.children.borrow(); return children.iter().any(|child| tag_name(&child) == "td"); });
-        for row in &rows {
-            table_markup.push('|');
-            let cells = collect_children(row, td_matcher);
+            let cells = collect_children(row, any_matcher);
             for index in 0..column_count { // we need to fill all cells in a column, even if some rows don't have enough
                 let padded_cell_text = pad_cell_text(&cells.get(index), column_widths[index]);
                 table_markup.push_str(&padded_cell_text);
                 table_markup.push('|');
             }
             table_markup.push('\n');
+
+            if idx == 0 {
+                // first row is a header row
+                // add header-body divider row
+                table_markup.push('|');
+                for index in 0..column_count {
+                    let width = column_widths[index];
+                    if width < 3 {
+                        // no point in aligning, just post as-is
+                        table_markup.push_str(&"-".repeat(width));
+                        table_markup.push('|');
+                        continue;
+                    }
+
+                    // try to detect alignment
+                    let mut alignment = String::new();
+                    if let Some(header_cell) = cells.get(index) {
+                        // we have a header, try to extract alignment from it
+                        alignment = match header_cell.data {
+                            NodeData::Element { ref attrs, .. } => {
+                                let attrs = attrs.borrow();
+                                let align_attr = attrs.iter().find(|attr| attr.name.local.to_string() == "align");
+                                align_attr.map(|attr| attr.value.to_string()).unwrap_or_default()
+                            }
+                            _ => String::new()
+                        };
+                    }
+
+                    // push lines according to alignment, fallback to default behaviour
+                    match alignment.as_ref() {
+                        "left" => { table_markup.push(':'); table_markup.push_str(&"-".repeat(width - 1)); }
+                        "center" => { table_markup.push(':'); table_markup.push_str(&"-".repeat(width - 2)); table_markup.push(':'); }
+                        "right" => { table_markup.push_str(&"-".repeat(width - 1)); table_markup.push(':'); }
+                        _ => table_markup.push_str(&"-".repeat(width))
+                    }
+                    table_markup.push('|');
+                }
+                table_markup.push('\n');
+            }
         }
 
         printer.insert_newline();
@@ -120,7 +100,7 @@ impl TagHandler for TableHandler {
     }
 
     fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
-        
+
     }
 
     fn skip_descendants(&self) -> bool {
@@ -131,7 +111,7 @@ impl TagHandler for TableHandler {
 /// Pads cell text from right and left so it looks centered inside the table cell
 /// ### Arguments
 /// `tag` - optional reference to currently processed handle, text is extracted from here
-/// 
+///
 /// `column_width` - precomputed column width to compute padding length from
 fn pad_cell_text(tag: &Option<&Handle>, column_width: usize) -> String {
     let mut result = String::new();

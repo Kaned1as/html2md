@@ -6,7 +6,7 @@ use html5ever::serialize::{SerializeOpts, TraversalScope};
 use markup5ever_rcdom::{Handle, NodeData, SerializableHandle};
 
 #[derive(Default)]
-pub(super) struct DummyHandler;
+pub struct DummyHandler;
 
 impl TagHandler for DummyHandler {
 
@@ -56,7 +56,7 @@ impl TagHandler for IdentityHandler {
 
 /// Handler that copies just one tag and doesn't skip descendants
 #[derive(Default)]
-pub(super) struct HtmlCherryPickHandler {
+pub struct HtmlCherryPickHandler {
     tag_name: String
 }
 

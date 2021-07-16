@@ -4,13 +4,13 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct AnchorHandler {
+pub struct AnchorHandler {
     start_pos: usize,
     url: String
 }
 
 impl TagHandler for AnchorHandler {
-    
+
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
         self.start_pos = printer.data.len();
 

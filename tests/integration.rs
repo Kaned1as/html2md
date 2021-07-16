@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use spectral::prelude::*;
+use indoc::indoc;
 
 #[test]
 #[ignore]
@@ -77,4 +78,20 @@ fn test_tables_with_newlines() {
         .collect();
 
     assert_that(&invalid_table_lines).is_empty();
+}
+
+#[test]
+fn test_tables_crash2() {
+    let mut html = String::new();
+    let mut html_file = File::open("test-samples/dybr-bug-with-tables-2-masked.html").unwrap();
+    html_file.read_to_string(&mut html).expect("File must be readable");
+    let table_with_vertical_header = parse_html(&html);
+
+    assert_that!(table_with_vertical_header).contains(indoc! {"
+        |Current Conditions:|Open all year. No reservations. No services.|
+        |-------------------|--------------------------------------------|
+        |   Reservations:   |              No reservations.              |
+        |       Fees        |                  No fee.                   |
+        |      Water:       |                 No water.                  |"
+    });
 }

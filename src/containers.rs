@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::Handle;
 
 #[derive(Default)]
-pub(super) struct ContainerHandler;
+pub struct ContainerHandler;
 
 impl TagHandler for ContainerHandler {
 

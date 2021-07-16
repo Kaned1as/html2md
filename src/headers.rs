@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct HeaderHandler {
+pub struct HeaderHandler {
     header_type: String,
 }
 

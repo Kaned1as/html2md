@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct ParagraphHandler {
+pub struct ParagraphHandler {
     paragraph_type: String
 }
 

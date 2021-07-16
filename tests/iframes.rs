@@ -1,6 +1,7 @@
 extern crate html2md;
 
 use html2md::parse_html;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn test_youtube_simple() {

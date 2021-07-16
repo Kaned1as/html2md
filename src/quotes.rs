@@ -4,12 +4,12 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::Handle;
 
 #[derive(Default)]
-pub(super) struct QuoteHandler {
+pub struct QuoteHandler {
     start_pos: usize
 }
 
 impl TagHandler for QuoteHandler {
-    
+
     fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
         self.start_pos = printer.data.len();
         printer.insert_newline();

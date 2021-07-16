@@ -12,7 +12,7 @@ const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').ad
 /// Handler for `<img>` tag. Depending on circumstances can produce both
 /// inline HTML-formatted image and Markdown native one
 #[derive(Default)]
-pub(super) struct ImgHandler {
+pub struct ImgHandler {
     block_mode: bool
 }
 

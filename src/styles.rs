@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct StyleHandler {
+pub struct StyleHandler {
     start_pos: usize,
     style_type: String
 }

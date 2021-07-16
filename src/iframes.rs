@@ -34,8 +34,7 @@ lazy_static! {
 }
 
 #[derive(Default)]
-pub(super) struct IframeHandler {
-}
+pub struct IframeHandler;
 
 impl TagHandler for IframeHandler {
 

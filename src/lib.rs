@@ -15,20 +15,19 @@ use html5ever::tendril::TendrilSink;
 
 pub use markup5ever_rcdom::{RcDom, Handle, NodeData};
 
-mod dummy;
-mod anchors;
-mod paragraphs;
-mod images;
-mod headers;
-mod lists;
-mod styles;
-mod codes;
-mod quotes;
-mod tables;
-mod containers;
-mod iframes;
-
 pub mod common;
+pub mod dummy;
+pub mod anchors;
+pub mod paragraphs;
+pub mod images;
+pub mod headers;
+pub mod lists;
+pub mod styles;
+pub mod codes;
+pub mod quotes;
+pub mod tables;
+pub mod containers;
+pub mod iframes;
 
 use crate::dummy::DummyHandler;
 use crate::dummy::IdentityHandler;
@@ -92,7 +91,7 @@ pub fn parse_html_extended(html: &str) -> String {
         fn instantiate(&self) -> Box<dyn TagHandler> {
             return Box::new(HtmlCherryPickHandler::default());
         }
-    };
+    }
 
     let mut tag_factory: HashMap<String, Box<dyn TagHandlerFactory>> = HashMap::new();
     tag_factory.insert(String::from("span"), Box::new(SpanAsIsTagFactory{}));
@@ -130,7 +129,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                 result.append_str(&minified_text);
             }
         }
-        NodeData::Comment { ref contents } => {},
+        NodeData::Comment { .. } => {}, // ignore comments
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
             let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");

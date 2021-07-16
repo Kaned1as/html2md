@@ -4,7 +4,7 @@ use super::StructuredPrinter;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
-pub(super) struct CodeHandler {
+pub struct CodeHandler {
     code_type: String
 }
 
@@ -36,7 +36,7 @@ impl CodeHandler {
 }
 
 impl TagHandler for CodeHandler {
-    
+
     fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
         self.code_type = match tag.data {
             NodeData::Element { ref name, .. } => name.local.to_string(),
