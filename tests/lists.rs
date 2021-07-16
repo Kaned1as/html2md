@@ -212,3 +212,25 @@ fn test_list_ordered() {
 3. Well I can see the fire still alight
 4. Burning into the night")
 }
+
+#[test]
+fn test_list_text_prevsibling() {
+    let md = parse_html(r#"
+        Phrases to describe me:
+        <ul>
+            <li>Awesome</li>
+            <li>Cool</li>
+            <li>Awesome and cool</li>
+            <li>Can count to five</li>
+            <li>Learning to count to six B)</li>
+        </ul>
+    "#);
+    assert_eq!(md, "\
+Phrases to describe me:
+
+* Awesome
+* Cool
+* Awesome and cool
+* Can count to five
+* Learning to count to six B)")
+}
