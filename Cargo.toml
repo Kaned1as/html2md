@@ -22,8 +22,8 @@ crate-type = ["rlib", "dylib", "staticlib"]
 [dependencies]
 # string_cache_codegen = "0.4.2" # Needed for markup5ever
 lazy_static = "1.4.0"
-html5ever = "0.25.1"
-markup5ever_rcdom = "0.1.0"
+html5ever = "0.26.0"
+markup5ever_rcdom = "0.2.0"
 regex = "1.4.2"
 percent-encoding = "2.1.0"
 
