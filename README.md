@@ -1,11 +1,11 @@
 HTML2MD
-============
+=======
 
 Library to convert simple html documents into markdown flavor.
 Implements markdown as written on its [inception page](https://daringfireball.net/projects/markdown).
 
 Features
-------------
+--------
 
 Currently supported:
 
@@ -20,19 +20,19 @@ Currently supported:
 + Code
 
 Limitations
--------------
+-----------
 
 - no markdown flavors support (-/+ unordered list styles, ##/== headers etc.)
 - doesn't yet detect code style
 
 Used libraries
--------------
-[html5ever](https://github.com/servo/html5ever) - Servo egine HTML parsing library, used to convert html input to DOM
+--------------
+[html5ever](https://github.com/servo/html5ever) - Servo engine HTML parsing library, used to convert html input to DOM
 
 [regex](https://github.com/rust-lang/regex) - PCRE support in Rust, used to correct whitespaces
 
 Contributions
-------------
+-------------
 You may create merge request or bug/enhancement issue right here on GitLab, or send formatted patch via e-mail. 
 For details see CONTRIBUTING.md file in this repo. 
 
@@ -50,3 +50,5 @@ License
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
+
+See [COPYING.md](./COPYING.md) for special terms on dual-licensing.
