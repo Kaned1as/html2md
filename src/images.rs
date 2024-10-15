@@ -2,6 +2,7 @@ use super::TagHandler;
 use super::StructuredPrinter;
 
 use crate::common::get_tag_attr;
+use crate::dummy::IdentityHandler;
 
 use markup5ever_rcdom::Handle;
 
@@ -43,14 +44,8 @@ impl TagHandler for ImgHandler {
 
         if height.is_some() || width.is_some() || align.is_some() {
             // need to handle it as inline html to preserve attributes we support
-            printer.append_str(
-                &format!("<img{} />",
-                    alt.map(|value| format!(" alt=\"{}\"", value)).unwrap_or_default() +
-                    &src.map(|value| format!(" src=\"{}\"", value)).unwrap_or_default() +
-                    &title.map(|value| format!(" title=\"{}\"", value)).unwrap_or_default() +
-                    &height.map(|value| format!(" height=\"{}\"", value)).unwrap_or_default() +
-                    &width.map(|value| format!(" width=\"{}\"", value)).unwrap_or_default() +
-                    &align.map(|value| format!(" align=\"{}\"", value)).unwrap_or_default()));
+            let mut identity = IdentityHandler::default();
+            identity.handle(tag, printer);
         } else {
             // need to escape URL if it contains spaces
             // don't have any geometry-controlling attrs, post markdown natively
