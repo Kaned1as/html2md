@@ -28,6 +28,10 @@ fn test_anchor3() {
 [APOSIMZ](http://ya.ru)
 
 [SIDONIA](http://yandex.ru)")
+#[test]
+fn test_anchor_with_name_attribute_is_preserved() {
+    let md = parse_html(r#"<p><a name="part1"></a></p>"#);
+    assert_eq!(md, r#"<a name="part1"></a>"#)
 }
 
 #[test]
