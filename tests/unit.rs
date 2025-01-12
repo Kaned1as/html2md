@@ -24,10 +24,9 @@ fn test_anchor2() {
 #[test]
 fn test_anchor3() {
     let md = parse_html(r#"<p><a href="http://ya.ru">APOSIMZ</a><p/><a href="http://yandex.ru">SIDONIA</a></p>"#);
-    assert_eq!(md, "\
-[APOSIMZ](http://ya.ru)
+    assert_eq!(md, "[APOSIMZ](http://ya.ru)\n\n[SIDONIA](http://yandex.ru)")
+}    
 
-[SIDONIA](http://yandex.ru)")
 #[test]
 fn test_anchor_with_name_attribute_is_preserved() {
     let md = parse_html(r#"<p><a name="part1"></a></p>"#);
@@ -115,3 +114,4 @@ fn test_escaping_start_hyphen_space() {
     let md = parse_html(r#"<p>This is NOT a header!<br/>     -------</p>"#);
     assert_eq!(md, "This is NOT a header!  \n \\-------")
 }
+
