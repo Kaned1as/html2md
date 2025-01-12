@@ -1,10 +1,9 @@
 use lazy_static::lazy_static;
 
 use std::boxed::Box;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 
-use std::os::raw::{c_char};
+use std::os::raw::c_char;
 use std::ffi::{CString, CStr};
 
 use regex::Regex;
@@ -190,7 +189,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
             continue;
         }
 
-        walk(child.borrow(), result, custom);
+        walk(child, result, custom);
 
         match child.data {
             NodeData::Element { ref name, .. } => result.siblings.get_mut(&current_depth).unwrap().push(name.local.to_string()),
