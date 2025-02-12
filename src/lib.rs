@@ -1,7 +1,9 @@
 use lazy_static::lazy_static;
 
 use std::boxed::Box;
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use std::os::raw::c_char;
 use std::ffi::{CString, CStr};
@@ -11,6 +13,8 @@ use regex::Regex;
 use html5ever::parse_document;
 use html5ever::driver::ParseOpts;
 use html5ever::tendril::TendrilSink;
+
+use markdown::mdast::{self, Root};
 
 pub use markup5ever_rcdom::{RcDom, Handle, NodeData};
 
@@ -29,8 +33,7 @@ pub mod containers;
 pub mod iframes;
 
 use crate::dummy::DummyHandler;
-use crate::dummy::IdentityHandler;
-use crate::dummy::HtmlCherryPickHandler;
+use crate::dummy::HtmlHandler;
 use crate::paragraphs::ParagraphHandler;
 use crate::anchors::AnchorHandler;
 use crate::images::ImgHandler;
@@ -44,20 +47,6 @@ use crate::tables::TableHandler;
 use crate::containers::ContainerHandler;
 use crate::iframes::IframeHandler;
 
-lazy_static! {
-    static ref EXCESSIVE_WHITESPACE_PATTERN: Regex = Regex::new("\\s{2,}").unwrap();   // for HTML on-the-fly cleanup
-
-    static ref EMPTY_LINE_PATTERN: Regex = Regex::new("(?m)^ +$").unwrap();            // for Markdown post-processing
-    static ref EXCESSIVE_NEWLINE_PATTERN: Regex = Regex::new("\\n{3,}").unwrap();      // for Markdown post-processing
-    static ref TRAILING_SPACE_PATTERN: Regex = Regex::new("(?m)(\\S) $").unwrap();     // for Markdown post-processing
-    static ref LEADING_NEWLINES_PATTERN: Regex = Regex::new("^\\n+").unwrap();         // for Markdown post-processing
-    static ref LAST_WHITESPACE_PATTERN: Regex = Regex::new("\\s+$").unwrap();          // for Markdown post-processing
-
-    static ref START_OF_LINE_PATTERN: Regex = Regex::new("(^|\\n) *$").unwrap();                  // for Markdown escaping
-    static ref MARKDOWN_STARTONLY_KEYCHARS: Regex = Regex::new(r"^(\s*)([=>+\-#])").unwrap();     // for Markdown escaping
-    static ref MARKDOWN_MIDDLE_KEYCHARS: Regex = Regex::new(r"[<>*\\_~]").unwrap();               // for Markdown escaping
-}
-
 /// Custom variant of main function. Allows to pass custom tag<->tag factory pairs
 /// in order to register custom tag hadler for tags you want.
 ///
@@ -67,10 +56,11 @@ lazy_static! {
 /// `custom` is custom tag hadler producers for tags you want, can be empty
 pub fn parse_html_custom(html: &str, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) -> String {
     let dom = parse_document(RcDom::default(), ParseOpts::default()).from_utf8().read_from(&mut html.as_bytes()).unwrap();
-    let mut result = StructuredPrinter::default();
+    let mut result = StructuredParser::new();
     walk(&dom.document, &mut result, custom);
 
-    return clean_markdown(&result.data);
+    println!("Result: {:?}", &result.data.borrow());
+    return mdast_util_to_markdown::to_markdown(&result.data.borrow()).unwrap();
 }
 
 /// Main function of this library. Parses incoming HTML, converts it into Markdown
@@ -88,7 +78,7 @@ pub fn parse_html_extended(html: &str) -> String {
     struct SpanAsIsTagFactory;
     impl TagHandlerFactory for SpanAsIsTagFactory {
         fn instantiate(&self) -> Box<dyn TagHandler> {
-            return Box::new(HtmlCherryPickHandler::default());
+            return Box::new(HtmlHandler::default());
         }
     }
 
@@ -104,38 +94,23 @@ pub fn parse_html_extended(html: &str) -> String {
 /// `input` is DOM tree or its subtree
 /// `result` is output holder with position and context tracking
 /// `custom` is custom tag hadler producers for tags you want, can be empty
-fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) {
+fn walk(input: &Handle, result: &mut StructuredParser, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) {
     let mut handler : Box<dyn TagHandler> = Box::new(DummyHandler::default());
     let mut tag_name = String::default();
     match input.data {
+        // ignore ancillary nodes
         NodeData::Document | NodeData::Doctype {..} | NodeData::ProcessingInstruction {..} => {},
         NodeData::Text { ref contents }  => {
             let mut text = contents.borrow().to_string();
-            let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
-            if inside_pre {
-                // this is preformatted text, insert as-is
-                result.append_str(&text);
-            } else if !(text.trim().len() == 0 && (result.data.chars().last() == Some('\n') || result.data.chars().last() == Some(' '))) {
-                // in case it's not just a whitespace after the newline or another whitespace
-
-                // regular text, collapse whitespace and newlines in text
-                let inside_code = result.parent_chain.iter().any(|tag| tag == "code");
-                if !inside_code {
-                    text = escape_markdown(result, &text);
-                }
-                let minified_text = EXCESSIVE_WHITESPACE_PATTERN.replace_all(&text, " ");
-                let minified_text = minified_text.trim_matches(|ch: char| ch == '\n' || ch == '\r');
-                result.append_str(&minified_text);
-            }
+            let node = mdast::Text{value: text, position: None};
+            result.add_text(node);
+            return;
         }
-        NodeData::Comment { .. } => {}, // ignore comments
+        // ignore comments
+        NodeData::Comment { .. } => {}, 
         NodeData::Element { ref name, .. } => {
             tag_name = name.local.to_string();
-            let inside_pre = result.parent_chain.iter().any(|tag| tag == "pre");
-            if inside_pre {
-                // don't add any html tags inside the pre section
-                handler = Box::new(DummyHandler::default());
-            }else if custom.contains_key(&tag_name) {
+            if custom.contains_key(&tag_name) {
                 // have user-supplied factory, instantiate a handler for this tag
                 let factory = custom.get(&tag_name).unwrap();
                 handler = factory.instantiate();
@@ -148,7 +123,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     "p" | "br" | "hr" => Box::new(ParagraphHandler::default()),
                     "q" | "cite" | "blockquote" => Box::new(QuoteHandler::default()),
                     // spoiler tag
-                    "details" | "summary" => Box::new(HtmlCherryPickHandler::default()),
+                    "details" | "summary" => Box::new(DummyHandler::default()),
                     // formatting
                     "b" | "i" | "s" | "strong" | "em" | "del" => Box::new(StyleHandler::default()),
                     "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => Box::new(HeaderHandler::default()),
@@ -160,7 +135,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
                     "ol" | "ul" | "menu" => Box::new(ListHandler::default()),
                     "li" => Box::new(ListItemHandler::default()),
                     // as-is
-                    "sub" | "sup" => Box::new(IdentityHandler::default()),
+                    "sub" | "sup" => Box::new(HtmlHandler::default()),
                     // tables, handled fully internally as markdown can't have nested content in tables
                     // supports only single tables as of now
                     "table" => Box::new(TableHandler::default()),
@@ -175,14 +150,7 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
 
     // handle this tag, while it's not in parent chain
     // and doesn't have child siblings
-    handler.handle(&input, result);
-
-    // save this tag name as parent for child nodes
-    result.parent_chain.push(tag_name.to_string());     // e.g. it was ["body"] and now it's ["body", "p"]
-    let current_depth = result.parent_chain.len();      // e.g. it was 1 and now it's 2
-
-    // create space for siblings of next level
-    result.siblings.insert(current_depth, vec![]);
+    handler.before_handle(&input, result);
 
     for child in input.children.borrow().iter() {
         if handler.skip_descendants() {
@@ -190,86 +158,73 @@ fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String,
         }
 
         walk(child, result, custom);
-
-        match child.data {
-            NodeData::Element { ref name, .. } => result.siblings.get_mut(&current_depth).unwrap().push(name.local.to_string()),
-            _ => {}
-        };
     }
 
-    // clear siblings of next level
-    result.siblings.remove(&current_depth);
-
-    // release parent tag
-    result.parent_chain.pop();
-
-    // finish handling of tag - parent chain now doesn't contain this tag itself again
     handler.after_handle(result);
-}
-
-/// This conversion should only be applied to text tags
-///
-/// Escapes text inside HTML tags so it won't be recognized as Markdown control sequence
-/// like list start or bold text style
-fn escape_markdown(result: &StructuredPrinter, text: &str) -> String {
-    // always escape bold/italic/strikethrough
-    let mut data = MARKDOWN_MIDDLE_KEYCHARS.replace_all(&text, "\\$0").to_string();
-
-    // if we're at the start of the line we need to escape list- and quote-starting sequences
-    if START_OF_LINE_PATTERN.is_match(&result.data) {
-        data = MARKDOWN_STARTONLY_KEYCHARS.replace(&data, "$1\\$2").to_string();
-    }
-
-    // no handling of more complicated cases such as
-    // ![] or []() ones, for now this will suffice
-    return data;
-}
-
-/// Called after all processing has been finished
-///
-/// Clears excessive punctuation that would be trimmed by renderer anyway
-fn clean_markdown(text: &str) -> String {
-    // remove redundant newlines
-    let intermediate = EMPTY_LINE_PATTERN.replace_all(&text, "");                           // empty line with trailing spaces, replace with just newline
-    let intermediate = EXCESSIVE_NEWLINE_PATTERN.replace_all(&intermediate, "\n\n");  // > 3 newlines - not handled by markdown anyway
-    let intermediate = TRAILING_SPACE_PATTERN.replace_all(&intermediate, "$1");       // trim space if it's just one
-    let intermediate = LEADING_NEWLINES_PATTERN.replace_all(&intermediate, "");       // trim leading newlines
-    let intermediate = LAST_WHITESPACE_PATTERN.replace_all(&intermediate, "");        // trim last newlines
-
-    return intermediate.into_owned();
+    result.pop_child();
 }
 
 /// Intermediate result of HTML -> Markdown conversion.
 ///
 /// Holds context in the form of parent tags and siblings chain
 /// and resulting string of markup content with current position.
-#[derive(Debug, Default)]
-pub struct StructuredPrinter {
+#[derive(Debug)]
+pub struct StructuredParser {
     /// Chain of parents leading to upmost <html> tag
-    pub parent_chain: Vec<String>,
-
-    /// Siblings of currently processed tag in order where they're appearing in html
-    pub siblings: HashMap<usize, Vec<String>>,
+    pub in_progress: Vec<Rc<RefCell<mdast::Node>>>,
 
     /// resulting markdown document
-    pub data: String,
+    pub data: Rc<RefCell<mdast::Node>>,
 }
 
-impl StructuredPrinter {
-
-    /// Inserts newline
-    pub fn insert_newline(&mut self) {
-        self.append_str("\n");
+impl StructuredParser {
+    pub fn new() -> Self {
+        let root = Rc::new(RefCell::new(mdast::Node::Root(mdast::Root {children: vec![], position: None})));
+        let parser = StructuredParser {
+            data: root.clone(),
+            in_progress: vec![
+                // start with root node
+                root.clone()
+            ],
+        };
+        return parser;
     }
 
-    /// Append string to the end of the printer
-    pub fn append_str(&mut self, it: &str) {
-        self.data.push_str(it);
+    fn add_child(&mut self, node: mdast::Node) {
+        println!("add child! {:?}", node);
+        self.in_progress.push(Rc::new(RefCell::new(node)));
+    }
+    
+    fn pop_child(&mut self) {
+        println!("pop child!");
+        if self.in_progress.len() < 2 {
+            return;
+        }
+
+        let child = self.in_progress.pop().unwrap();
+        let parent = self.in_progress.last().unwrap();
+
+        let child_raw = Rc::into_inner(child).unwrap().into_inner();
+        parent.borrow_mut().children_mut().map(|c| c.push(child_raw));
     }
 
-    /// Insert string at specified position of printer, adjust position to the end of inserted string
-    pub fn insert_str(&mut self, pos: usize, it: &str) {
-        self.data.insert_str(pos, it);
+    fn add_text(&mut self, text: mdast::Text) {
+        println!("add text!");
+        // at this point there are no other references to this node
+        let parent = self.in_progress.last().unwrap();
+
+        let mut real_node = parent.borrow_mut();
+        match *real_node {
+           mdast::Node::Code(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::InlineCode(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::Math(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::InlineMath(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::Html(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::Yaml(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::Toml(ref mut obj) => { obj.value += &text.value; },
+           mdast::Node::List(..) => {},
+           _ => { real_node.children_mut().map(|c| c.push(mdast::Node::Text(text))); }
+        }
     }
 }
 
@@ -288,10 +243,10 @@ pub trait TagHandlerFactory {
 pub trait TagHandler {
     /// Handle tag encountered when walking HTML tree.
     /// This is executed before the children processing
-    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter);
+    fn before_handle(&mut self, tag: &Handle, printer: &mut StructuredParser);
 
     /// Executed after all children of this tag have been processed
-    fn after_handle(&mut self, printer: &mut StructuredPrinter);
+    fn after_handle(&mut self, printer: &mut StructuredParser);
 
     fn skip_descendants(&self) -> bool {
         return false;

@@ -1,8 +1,10 @@
+use crate::StructuredParser;
+
 use super::TagHandler;
-use super::StructuredPrinter;
 
 use html5ever::serialize;
 use html5ever::serialize::{SerializeOpts, TraversalScope};
+use markdown::mdast;
 use markup5ever_rcdom::{Handle, NodeData, SerializableHandle};
 
 #[derive(Default)]
@@ -10,22 +12,22 @@ pub struct DummyHandler;
 
 impl TagHandler for DummyHandler {
 
-    fn handle(&mut self, _tag: &Handle, _printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, _tag: &Handle, _printer: &mut StructuredParser) {
 
     }
 
-    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn after_handle(&mut self, _printer: &mut StructuredParser) {
 
     }
 }
 
 /// Handler that completely copies tag to printer as HTML with all descendants
 #[derive(Default)]
-pub(super) struct IdentityHandler;
+pub(super) struct HtmlHandler;
 
-impl TagHandler for IdentityHandler {
+impl TagHandler for HtmlHandler {
 
-    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, tag: &Handle, printer: &mut StructuredParser) {
         let mut buffer = vec![];
 
         let options = SerializeOpts { traversal_scope: TraversalScope::IncludeNode, .. Default::default() };
@@ -42,47 +44,15 @@ impl TagHandler for IdentityHandler {
             return;
         }
 
-        printer.append_str(&conv.unwrap());
+        let node = mdast::Html{value: conv.unwrap(), position: None};
+        printer.add_child(mdast::Node::Html(node));
     }
 
     fn skip_descendants(&self) -> bool {
         return true;
     }
 
-    fn after_handle(&mut self, _printer: &mut StructuredPrinter) {
+    fn after_handle(&mut self, _printer: &mut StructuredParser) {
 
-    }
-}
-
-/// Handler that copies just one tag and doesn't skip descendants
-#[derive(Default)]
-pub struct HtmlCherryPickHandler {
-    tag_name: String
-}
-
-impl TagHandler for HtmlCherryPickHandler {
-
-    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
-        match tag.data {
-            NodeData::Element { ref name, ref attrs, .. } => {
-                let attrs = attrs.borrow();
-                self.tag_name = name.local.to_string();
-
-                printer.append_str(&format!("<{}", self.tag_name));
-                for attr in attrs.iter() {
-                    printer.append_str(&format!(" {}=\"{}\"", attr.name.local, attr.value));
-                }
-                printer.append_str(">");
-            }
-            _ => return
-        }
-    }
-
-    fn skip_descendants(&self) -> bool {
-        return false;
-    }
-
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        printer.append_str(&format!("</{}>", self.tag_name));
     }
 }

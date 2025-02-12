@@ -1,6 +1,8 @@
-use super::TagHandler;
-use super::StructuredPrinter;
+use crate::StructuredParser;
 
+use super::TagHandler;
+
+use markdown::mdast;
 use markup5ever_rcdom::{Handle,NodeData};
 
 #[derive(Default)]
@@ -10,33 +12,26 @@ pub struct HeaderHandler {
 
 impl TagHandler for HeaderHandler {
 
-    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, tag: &Handle, printer: &mut StructuredParser) {
         self.header_type = match tag.data {
             NodeData::Element { ref name, .. } => name.local.to_string(),
             _ => String::new()
         };
 
-        printer.insert_newline();
-        printer.insert_newline();
+        let mut node = mdast::Heading{children: Vec::default(), depth: 1, position: None};
         match self.header_type.as_ref() {
-            "h3" => printer.append_str("### "),
-            "h4" => printer.append_str("#### "),
-            "h5" => printer.append_str("##### "),
-            "h6" => printer.append_str("###### "),
+            "h1" => node.depth = 1,
+            "h2" => node.depth = 2,
+            "h3" => node.depth = 3,
+            "h4" => node.depth = 4,
+            "h5" => node.depth = 5,
+            "h6" => node.depth = 6,
             _ => {}
         }
+
+        printer.add_child(mdast::Node::Heading(node));
     }
 
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        match self.header_type.as_ref() {
-            "h1" => printer.append_str("\n==========\n"),
-            "h2" => printer.append_str("\n----------\n"),
-            "h3" => printer.append_str(" ###\n"),
-            "h4" => printer.append_str(" ####\n"),
-            "h5" => printer.append_str(" #####\n"),
-            "h6" => printer.append_str(" ######\n"),
-            _ => {}
-        }
-        printer.insert_newline();
+    fn after_handle(&mut self, printer: &mut StructuredParser) {
     }
 }

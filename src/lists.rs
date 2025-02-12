@@ -1,12 +1,9 @@
 use super::TagHandler;
-use super::StructuredPrinter;
+use super::StructuredParser;
 
+use markdown::mdast;
 use markup5ever_rcdom::Handle;
-
-/// gets all list elements registered by a `StructuredPrinter` in reverse order
-fn list_hierarchy(printer: &mut StructuredPrinter) -> Vec<&String> {
-    printer.parent_chain.iter().rev().filter(|&tag| tag == "ul" || tag == "ol" || tag == "menu").collect()
-}
+use markup5ever_rcdom::NodeData;
 
 #[derive(Default)]
 pub struct ListHandler;
@@ -14,85 +11,37 @@ pub struct ListHandler;
 impl TagHandler for ListHandler {
 
     /// we're entering "ul" or "ol" tag, no "li" handling here
-    fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
-        printer.insert_newline();
+    fn before_handle(&mut self, tag: &Handle, printer: &mut StructuredParser) {
+        let list_type = match tag.data {
+            NodeData::Element { ref name, .. } => name.local.to_string(),
+            _ => String::new()
+        };
 
         // insert an extra newline for non-nested lists
-        if list_hierarchy(printer).is_empty() {
-            printer.insert_newline();
+        let mut node = mdast::List{children: Vec::default(), position: None, spread: false, ordered: false, start: None};
+        match list_type.as_ref() {
+            "ul" | "menu" => node.ordered = false,
+            "ol" => node.ordered = false,
+            _ => {}
         }
+        printer.add_child(mdast::Node::List(node));
     }
 
     /// indent now-ready list
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        printer.insert_newline();
-        printer.insert_newline();
+    fn after_handle(&mut self, _printer: &mut StructuredParser) {
     }
 }
 
 #[derive(Default)]
-pub struct ListItemHandler {
-    start_pos: usize,
-    list_type: String
-}
+pub struct ListItemHandler;
 
 impl TagHandler for ListItemHandler {
 
-    fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
-        {
-            let parent_lists = list_hierarchy(printer);
-            let nearest_parent_list = parent_lists.first();
-            if nearest_parent_list.is_none() {
-                // no parent list
-                // should not happen - html5ever cleans html input when parsing
-                return;
-            }
-
-            self.list_type = nearest_parent_list.unwrap().to_string();
-        }
-
-        if printer.data.chars().last() != Some('\n') {
-            // insert newline when declaring a list item only in case there isn't any newline at the end of text
-            printer.insert_newline();
-        }
-
-        let current_depth = printer.parent_chain.len();
-        let order = printer.siblings[&current_depth].len() + 1;
-        match self.list_type.as_ref() {
-            "ul" | "menu" => printer.append_str("* "), // unordered list: *, *, *
-            "ol" => printer.append_str(&(order.to_string() + ". ")), // ordered list: 1, 2, 3
-            _ => {} // never happens
-        }
-
-        self.start_pos = printer.data.len();
+    fn before_handle(&mut self, _tag: &Handle, printer: &mut StructuredParser) {
+        let node = mdast::ListItem{children: Vec::default(), position: None, spread: false, checked: None};
+        printer.add_child(mdast::Node::ListItem(node));
     }
 
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        let padding = match self.list_type.as_ref() {
-            "ul" => 2,
-            "ol" => 3,
-            _ => 4
-        };
-
-        // need to cleanup leading newlines, <p> inside <li> should produce valid 
-        // list element, not an empty line
-        let index = self.start_pos;
-        while index < printer.data.len() {
-            if printer.data.bytes().nth(index) == Some(b'\n') || printer.data.bytes().nth(index) == Some(b' ') {
-                printer.data.remove(index);
-            } else {
-                break;
-            }
-        }
-
-        // non-nested indentation (padding). Markdown requires that all paragraphs in the
-        // list item except first should be indented with at least 1 space
-        let mut index = printer.data.len();
-        while index > self.start_pos {
-            if printer.data.bytes().nth(index) == Some(b'\n') {
-                printer.insert_str(index + 1, &" ".repeat(padding));
-            }
-            index -= 1;
-        }
+    fn after_handle(&mut self, printer: &mut StructuredParser) {
     }
 }

@@ -1,9 +1,10 @@
 use super::TagHandler;
-use super::StructuredPrinter;
 
 use crate::common::get_tag_attr;
-use crate::dummy::IdentityHandler;
+use crate::dummy::HtmlHandler;
+use crate::StructuredParser;
 
+use markdown::mdast;
 use markup5ever_rcdom::Handle;
 
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
@@ -19,7 +20,7 @@ pub struct ImgHandler {
 
 impl TagHandler for ImgHandler {
 
-    fn handle(&mut self, tag: &Handle, printer: &mut StructuredPrinter) {
+    fn before_handle(&mut self, tag: &Handle, printer: &mut StructuredParser) {
         // hack: detect if the image has associated style and has display in block mode
         let style_tag = get_tag_attr(tag, "src");
         if let Some(style) = style_tag {
@@ -30,8 +31,8 @@ impl TagHandler for ImgHandler {
 
         if self.block_mode {
             // make image on new paragraph
-            printer.insert_newline();
-            printer.insert_newline();
+            let node = mdast::Paragraph{children: Vec::default(), position: None};
+            printer.add_child(mdast::Node::Paragraph(node));
         }
 
         // try to extract attrs
@@ -44,8 +45,8 @@ impl TagHandler for ImgHandler {
 
         if height.is_some() || width.is_some() || align.is_some() {
             // need to handle it as inline html to preserve attributes we support
-            let mut identity = IdentityHandler::default();
-            identity.handle(tag, printer);
+            let mut identity = HtmlHandler::default();
+            identity.before_handle(tag, printer);
         } else {
             // need to escape URL if it contains spaces
             // don't have any geometry-controlling attrs, post markdown natively
@@ -54,18 +55,11 @@ impl TagHandler for ImgHandler {
                 img_url = utf8_percent_encode(&img_url, FRAGMENT).to_string();
             }
 
-            printer.append_str(
-                &format!("![{}]({}{})", 
-                    alt.unwrap_or_default(), 
-                    &img_url,
-                    title.map(|value| format!(" \"{}\"", value)).unwrap_or_default()));
+            let node = mdast::Image{alt: alt.unwrap_or_default(), url: img_url, title, position: None};
+            printer.add_child(mdast::Node::Image(node));
         }
     }
 
-    fn after_handle(&mut self, printer: &mut StructuredPrinter) {
-        if self.block_mode {
-            printer.insert_newline();
-            printer.insert_newline();
-        }
+    fn after_handle(&mut self, printer: &mut StructuredParser) {
     }
 }
