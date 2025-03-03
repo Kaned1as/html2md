@@ -321,18 +321,18 @@ pub mod android {
     use self::jni::sys::jstring;
 
     #[no_mangle]
-    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parse(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
-        let html_java : String = env.get_string(html).expect("Couldn't get java string!").into();
+    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parse(mut env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
+        let html_java : String = env.get_string(&html).expect("Couldn't get java string!").into();
         let markdown = parse_html(&html_java);
         let output = env.new_string(markdown).expect("Couldn't create java string!");
-        output.into_inner()
+        output.into_raw()
     }
 
     #[no_mangle]
-    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parseExtended(env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
-        let html_java : String = env.get_string(html).expect("Couldn't get java string!").into();
+    pub unsafe extern fn Java_com_kanedias_html2md_Html2Markdown_parseExtended(mut env: JNIEnv, _clazz: JClass, html: JString) -> jstring {
+        let html_java : String = env.get_string(&html).expect("Couldn't get java string!").into();
         let markdown = parse_html_extended(&html_java);
         let output = env.new_string(markdown).expect("Couldn't create java string!");
-        output.into_inner()
+        output.into_raw()
     }
 }
