@@ -34,7 +34,7 @@ impl CodeHandler {
                 if start.is_some() {
                     printer.insert_newline();
                 }
-                printer.append_str("\n```\n");
+                printer.append_str("\n```");
 
                 if let Some(handle) = start.and_then(Self::find_code_child) {
                     if let NodeData::Element { ref attrs, .. } = handle.data {
@@ -54,6 +54,8 @@ impl CodeHandler {
                         }
                     }
                 }
+
+                printer.insert_newline();
 
                 if start.is_none() {
                     printer.insert_newline();
