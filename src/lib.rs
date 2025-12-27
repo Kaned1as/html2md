@@ -104,7 +104,7 @@ pub fn parse_html_extended(html: &str) -> String {
 /// `input` is DOM tree or its subtree
 /// `result` is output holder with position and context tracking
 /// `custom` is custom tag hadler producers for tags you want, can be empty
-fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) {
+pub fn walk(input: &Handle, result: &mut StructuredPrinter, custom: &HashMap<String, Box<dyn TagHandlerFactory>>) {
     let mut handler : Box<dyn TagHandler> = Box::new(DummyHandler::default());
     let mut tag_name = String::default();
     match input.data {
