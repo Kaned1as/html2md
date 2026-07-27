@@ -1,4 +1,4 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 use super::TagHandler;
 use super::StructuredPrinter;
@@ -9,29 +9,24 @@ use crate::dummy::IdentityHandler;
 use regex::Regex;
 use markup5ever_rcdom::Handle;
 
-lazy_static! {
-    /// Pattern that detects iframes with Youtube embedded videos<br/>
-    /// Examples:
-    /// * `https://www.youtube.com/embed/zE-dmXZp3nU?wmode=opaque`
-    /// * `https://www.youtube-nocookie.com/embed/5yo6exIypkY`
-    /// * `https://www.youtube.com/embed/TXm6IXrbQuM`
-    static ref YOUTUBE_PATTERN : Regex = Regex::new(r"www\.youtube(?:-nocookie)?\.com/embed/([-\w]+)").unwrap();
+/// Pattern that detects iframes with Youtube embedded videos<br/>
+/// Examples:
+/// * `https://www.youtube.com/embed/zE-dmXZp3nU?wmode=opaque`
+/// * `https://www.youtube-nocookie.com/embed/5yo6exIypkY`
+/// * `https://www.youtube.com/embed/TXm6IXrbQuM`
+static YOUTUBE_PATTERN : LazyLock<Regex> = LazyLock::new(||Regex::new(r"www\.youtube(?:-nocookie)?\.com/embed/([-\w]+)").unwrap());
 
-    /// Pattern that detects iframes with Instagram embedded photos<br/>
-    /// Examples:
-    /// * `https://www.instagram.com/p/B1BKr9Wo8YX/embed/`
-    /// * `https://www.instagram.com/p/BpKjlo-B4uI/embed/`
-    static ref INSTAGRAM_PATTERN: Regex = Regex::new(r"www\.instagram\.com/p/([-\w]+)/embed").unwrap();
+/// Pattern that detects iframes with Instagram embedded photos<br/>
+/// Examples:
+/// * `https://www.instagram.com/p/B1BKr9Wo8YX/embed/`
+/// * `https://www.instagram.com/p/BpKjlo-B4uI/embed/`
+static INSTAGRAM_PATTERN: LazyLock<Regex> =  LazyLock::new(||Regex::new(r"www\.instagram\.com/p/([-\w]+)/embed").unwrap());
 
-    /// Patter that detects iframes with VKontakte embedded videos<br/>
-    /// Examples:
-    /// * `https://vk.com/video_ext.php?oid=-49423435&id=456245092&hash=e1611aefe899c4f8`
-    /// * `https://vk.com/video_ext.php?oid=-76477496&id=456239454&hash=ebfdc2d386617b97`
-    static ref VK_PATTERN: Regex = Regex::new(r"vk\.com/video_ext\.php\?oid=(-?\d+)&id=(\d+)&hash=(.*)").unwrap();
-
-    static ref YANDEX_MUSIC_TRACK_PATTERN: Regex = Regex::new(r"https://music.yandex.ru/iframe/#track/(\d+)/(\d+)").unwrap();
-    static ref YANDEX_MUSIC_ALBUM_PATTERN: Regex = Regex::new(r"https://music.yandex.ru/iframe/#album/(\d+)").unwrap();
-}
+/// Patter that detects iframes with VKontakte embedded videos<br/>
+/// Examples:
+/// * `https://vk.com/video_ext.php?oid=-49423435&id=456245092&hash=e1611aefe899c4f8`
+/// * `https://vk.com/video_ext.php?oid=-76477496&id=456239454&hash=ebfdc2d386617b97`
+static VK_PATTERN: LazyLock<Regex> =  LazyLock::new(||Regex::new(r"vk\.com/video_ext\.php\?oid=(-?\d+)&id=(\d+)&hash=(.*)").unwrap());
 
 #[derive(Default)]
 pub struct IframeHandler;
